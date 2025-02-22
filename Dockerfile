@@ -1,4 +1,3 @@
-# Dockerfile
 FROM php:8.2-apache
 
 # Install system dependencies
@@ -12,11 +11,19 @@ RUN apt-get update && apt-get install -y \
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) gd
 
+# Configure PHP settings for larger uploads
+RUN { \
+    echo 'upload_max_filesize = 20M'; \
+    echo 'post_max_size = 21M'; \
+    echo 'memory_limit = 256M'; \
+} > /usr/local/etc/php/conf.d/uploads.ini
+
 # Enable Apache modules
 RUN a2enmod rewrite
 
 # Set Apache configuration
-RUN sed -i 's/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf
+RUN sed -i 's/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf && \
+    echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
 # Create directory structure
 RUN mkdir -p /var/www/html/posters/movies \

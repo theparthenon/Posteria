@@ -635,19 +635,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars($site_title); ?></title>
-    <meta property="og:title" content="Plex Posters" />
+    <meta property="og:title" content="Posteria" />
     <meta property="og:type" content="website" />
-    <meta property="og:description" content="Plex Posters" />
-    <meta property="og:url" content="https://tvtime.dev/posters" />
-    <meta property="og:image" content="https://tvtime.dev/posters/assets/web-app-manifest-512x512.png" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <meta property="og:description" content="Posteria" />
+    <meta property="og:url" content="<?php echo htmlspecialchars($config['siteUrl']); ?>" />
+    <meta property="og:image" content="<?php echo htmlspecialchars($config['siteUrl']); ?>/assets/web-app-manifest-512x512.png" />
     <link rel="icon" type="image/png" href="/assets/favicon-96x96.png" sizes="96x96" />
 	<link rel="icon" type="image/svg+xml" href="./assets/favicon.svg" />
 	<link rel="shortcut icon" href="./assets/favicon.ico" />
 	<link rel="apple-touch-icon" sizes="180x180" href="./assets/apple-touch-icon.png" />
-	<meta name="apple-mobile-web-app-title" content="Plex Posters" />
+	<meta name="apple-mobile-web-app-title" content="Posteria" />
 	<link rel="manifest" href="./assets/site.webmanifest" />
     <style>
 		/* Theme Variables */

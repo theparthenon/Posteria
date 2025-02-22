@@ -34,6 +34,7 @@ RUN mkdir -p /var/www/html/posters/movies \
 
 # Copy the application files
 COPY index.php /var/www/html/
+COPY posters/config.php /var/www/html/posters/
 
 # Copy assets directory
 COPY assets/ /var/www/html/assets/

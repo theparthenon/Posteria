@@ -2,8 +2,6 @@
 
 Posteria is a web-based media poster management system that allows you to organize and store custom posters for your movies, TV shows, seasons, and collections. It provides an elegant interface for uploading, managing, and accessing your media artwork.
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-
 ## Features
 
 - 🖼️ Clean, modern interface for managing media posters
@@ -93,6 +91,10 @@ The Docker container uses the following volume mounts:
 1. Change the default username and password
 2. Use HTTPS if exposing to the internet
 3. Regularly backup your poster directories
+
+## License
+
+[MIT License](LICENSE)
 
 ## AI Assistance Disclosure
 

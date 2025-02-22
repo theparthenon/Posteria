@@ -18,7 +18,7 @@ Posteria is a web-based media poster management system that allows you to organi
 [![](https://jereme.dev/images/paypal-donate-button.png)](https://www.paypal.com/ncp/payment/7WSTDKQ4PCNXQ)
 
 ## Screenshot
-![Posteria](https://raw.githubusercontent.com/jeremehancock/Posteria/images/screenshot.png "Posteria")
+![Posteria](https://raw.githubusercontent.com/jeremehancock/Posteria/main/images/screenshot.png "Posteria")
 
 ## Installation
 

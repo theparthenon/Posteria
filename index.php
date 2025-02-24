@@ -2153,148 +2153,148 @@
 			const fileInput = document.getElementById('fileInput');
 			if (fileInput) {
 				fileInput.addEventListener('change', function(e) {
-				    const fileName = e.target.files[0]?.name || 'No file chosen';
-				    const fileNameElement = this.parentElement.querySelector('.file-name');
-				    if (fileNameElement) {
-				        fileNameElement.textContent = fileName;
-				    }
+					const fileName = e.target.files[0]?.name || 'No file chosen';
+					const fileNameElement = this.parentElement.querySelector('.file-name');
+					if (fileNameElement) {
+						fileNameElement.textContent = fileName;
+					}
 				});
 			}
 
 			// Modal Functions
 			function showModal(modal) {
 				if (modal) {
-				    modal.style.display = 'block';
-				    modal.offsetHeight; // Force reflow
-				    setTimeout(() => {
-				        modal.classList.add('show');
-				    }, 10);
+					modal.style.display = 'block';
+					modal.offsetHeight; // Force reflow
+					setTimeout(() => {
+						modal.classList.add('show');
+					}, 10);
 				}
 			}
 
 			function hideModal(modal, form = null) {
 				if (modal) {
-				    modal.classList.remove('show');
-				    setTimeout(() => {
-				        modal.style.display = 'none';
-				        if (form) form.reset();
-				    }, 300);
+					modal.classList.remove('show');
+					setTimeout(() => {
+						modal.style.display = 'none';
+						if (form) form.reset();
+					}, 300);
 				}
 			}
 
 			// Login Modal Functions
 			if (showLoginButton && loginModal) {
 				function showLoginModal() {
-				    showModal(loginModal);
-				    loginError.style.display = 'none';
+					showModal(loginModal);
+					loginError.style.display = 'none';
 				}
 
 				function hideLoginModal() {
-				    hideModal(loginModal, loginForm);
-				    loginError.style.display = 'none';
+					hideModal(loginModal, loginForm);
+					loginError.style.display = 'none';
 				}
 
 				showLoginButton.addEventListener('click', showLoginModal);
 				closeLoginButton?.addEventListener('click', hideLoginModal);
 				
 				loginModal.addEventListener('click', (e) => {
-				    if (e.target === loginModal) hideLoginModal();
+					if (e.target === loginModal) hideLoginModal();
 				});
 			}
 
 			// Upload Modal Functions
 			if (showUploadButton && uploadModal) {
 				function showUploadModal() {
-				    showModal(uploadModal);
+					showModal(uploadModal);
 				}
 
 				function hideUploadModal() {
-				    hideModal(uploadModal);
+					hideModal(uploadModal);
 				}
 
 				showUploadButton.addEventListener('click', showUploadModal);
 				closeUploadButton?.addEventListener('click', hideUploadModal);
 				
 				uploadModal.addEventListener('click', (e) => {
-				    if (e.target === uploadModal) hideUploadModal();
+					if (e.target === uploadModal) hideUploadModal();
 				});
 
 				// Upload tabs functionality
 				uploadTabs.forEach(button => {
-				    button.addEventListener('click', () => {
-				        const tabName = button.getAttribute('data-tab');
-				        
-				        // Update active tab button
-				        uploadTabs.forEach(btn => btn.classList.remove('active'));
-				        button.classList.add('active');
-				        
-				        // Show active form
-				        uploadForms.forEach(form => {
-				            if (form.id === tabName + 'UploadForm') {
-				                form.classList.add('active');
-				            } else {
-				                form.classList.remove('active');
-				            }
-				        });
-				    });
+					button.addEventListener('click', () => {
+						const tabName = button.getAttribute('data-tab');
+						
+						// Update active tab button
+						uploadTabs.forEach(btn => btn.classList.remove('active'));
+						button.classList.add('active');
+						
+						// Show active form
+						uploadForms.forEach(form => {
+						    if (form.id === tabName + 'UploadForm') {
+						        form.classList.add('active');
+						    } else {
+						        form.classList.remove('active');
+						    }
+						});
+					});
 				});
 			}
 
 			// Login Form Handler
 			if (loginForm) {
 				loginForm.addEventListener('submit', async function(e) {
-				    e.preventDefault();
-				    const formData = new FormData(loginForm);
-				    
-				    try {
-				        const response = await fetch(window.location.href, {
-				            method: 'POST',
-				            body: formData,
-				            headers: {
-				                'X-Requested-With': 'XMLHttpRequest'
-				            }
-				        });
-				        
-				        const data = await response.json();
-				        
-				        if (data.success) {
-				            window.location.reload();
-				        } else {
-				            loginError.textContent = data.error;
-				            loginError.style.display = 'block';
-				        }
-				    } catch (error) {
-				        console.error('Login error:', error);
-				        loginError.textContent = 'An error occurred during login';
-				        loginError.style.display = 'block';
-				    }
+					e.preventDefault();
+					const formData = new FormData(loginForm);
+					
+					try {
+						const response = await fetch(window.location.href, {
+						    method: 'POST',
+						    body: formData,
+						    headers: {
+						        'X-Requested-With': 'XMLHttpRequest'
+						    }
+						});
+						
+						const data = await response.json();
+						
+						if (data.success) {
+						    window.location.reload();
+						} else {
+						    loginError.textContent = data.error;
+						    loginError.style.display = 'block';
+						}
+					} catch (error) {
+						console.error('Login error:', error);
+						loginError.textContent = 'An error occurred during login';
+						loginError.style.display = 'block';
+					}
 				});
 			}
 			
 			// Form Handlers
 			if (deleteForm) {
 				deleteForm.addEventListener('submit', async function(e) {
-				    e.preventDefault();
-				    const formData = new FormData(deleteForm);
-				    
-				    try {
-				        const response = await fetch(window.location.href, {
-				            method: 'POST',
-				            body: formData
-				        });
-				        
-				        const data = await response.json();
-				        
-				        if (data.success) {
-				            hideModal(deleteModal);
-				            window.location.reload();
-				        } else {
-				            alert(data.error || 'Failed to delete file');
-				        }
-				    } catch (error) {
-				        console.error('Delete error:', error);
-				        alert('An error occurred while deleting the file');
-				    }
+					e.preventDefault();
+					const formData = new FormData(deleteForm);
+					
+					try {
+						const response = await fetch(window.location.href, {
+						    method: 'POST',
+						    body: formData
+						});
+						
+						const data = await response.json();
+						
+						if (data.success) {
+						    hideModal(deleteModal);
+						    window.location.reload();
+						} else {
+						    alert(data.error || 'Failed to delete file');
+						}
+					} catch (error) {
+						console.error('Delete error:', error);
+						alert('An error occurred while deleting the file');
+					}
 				});
 			}
 
@@ -2302,103 +2302,103 @@
 				const renameError = document.querySelector('.rename-error');
 				
 				function showRenameError(message) {
-				    renameError.textContent = message;
-				    renameError.style.display = 'block';
+					renameError.textContent = message;
+					renameError.style.display = 'block';
 				}
 				
 				function hideRenameError() {
-				    renameError.style.display = 'none';
-				    renameError.textContent = '';
+					renameError.style.display = 'none';
+					renameError.textContent = '';
 				}
 				
 				function validateFilename(filename) {
-				    // Check for periods in the filename (excluding extension)
-				    const periodCount = filename.split('.').length - 1;
-				    if (periodCount > 0) {
-				        showRenameError('Filename cannot contain periods');
-				        return false;
-				    }
-				    
-				    // Check for slashes and backslashes in the filename
-				    if (filename.includes('/') || filename.includes('\\')) {
-				        showRenameError('Filename cannot contain slashes');
-				        return false;
-				    }
-				    return true;
+					// Check for periods in the filename (excluding extension)
+					const periodCount = filename.split('.').length - 1;
+					if (periodCount > 0) {
+						showRenameError('Filename cannot contain periods');
+						return false;
+					}
+					
+					// Check for slashes and backslashes in the filename
+					if (filename.includes('/') || filename.includes('\\')) {
+						showRenameError('Filename cannot contain slashes');
+						return false;
+					}
+					return true;
 				}
 				
 				renameForm.addEventListener('submit', async function(e) {
-				    e.preventDefault();
-				    hideRenameError();
-				    
-				    const newFilename = document.getElementById('newFilename').value;
-				    if (!validateFilename(newFilename)) {
-				        return;
-				    }
-				    
-				    const formData = new FormData(renameForm);
-				    
-				    try {
-				        const response = await fetch(window.location.href, {
-				            method: 'POST',
-				            body: formData
-				        });
-				        
-				        const data = await response.json();
-				        
-				        if (data.success) {
-				            hideModal(renameModal);
-				            window.location.reload();
-				        } else {
-				            showRenameError(data.error || 'Failed to rename file');
-				        }
-				    } catch (error) {
-				        console.error('Rename error:', error);
-				        showRenameError('An error occurred while renaming the file');
-				    }
+					e.preventDefault();
+					hideRenameError();
+					
+					const newFilename = document.getElementById('newFilename').value;
+					if (!validateFilename(newFilename)) {
+						return;
+					}
+					
+					const formData = new FormData(renameForm);
+					
+					try {
+						const response = await fetch(window.location.href, {
+						    method: 'POST',
+						    body: formData
+						});
+						
+						const data = await response.json();
+						
+						if (data.success) {
+						    hideModal(renameModal);
+						    window.location.reload();
+						} else {
+						    showRenameError(data.error || 'Failed to rename file');
+						}
+					} catch (error) {
+						console.error('Rename error:', error);
+						showRenameError('An error occurred while renaming the file');
+					}
 				});
 
 				// When closing the modal, clear any error messages
 				document.getElementById('cancelRename')?.addEventListener('click', () => {
-				    hideRenameError();
-				    hideModal(renameModal, renameForm);
+					hideRenameError();
+					hideModal(renameModal, renameForm);
 				});
 				
 				renameModal?.querySelector('.modal-close-btn')?.addEventListener('click', () => {
-				    hideRenameError();
-				    hideModal(renameModal, renameForm);
+					hideRenameError();
+					hideModal(renameModal, renameForm);
 				});
 				
 				// Real-time validation as user types
 				document.getElementById('newFilename').addEventListener('input', function(e) {
-				    const filename = e.target.value;
-				    validateFilename(filename);
+					const filename = e.target.value;
+					validateFilename(filename);
 				});
 			}
 
 			if (moveForm) {
 				moveForm.addEventListener('submit', async function(e) {
-				    e.preventDefault();
-				    const formData = new FormData(moveForm);
-				    
-				    try {
-				        const response = await fetch(window.location.href, {
-				            method: 'POST',
-				            body: formData
-				        });
-				        
-				        const data = await response.json();
-				        
-				        if (data.success) {
-				            hideModal(moveModal);
-				            window.location.reload();
-				        } else {
-				            alert(data.error || 'Failed to move file');
-				        }
-				    } catch (error) {
-				        console.error('Move error:', error);
-				        alert('An error occurred while moving the file');
-				    }
+					e.preventDefault();
+					const formData = new FormData(moveForm);
+					
+					try {
+						const response = await fetch(window.location.href, {
+						    method: 'POST',
+						    body: formData
+						});
+						
+						const data = await response.json();
+						
+						if (data.success) {
+						    hideModal(moveModal);
+						    window.location.reload();
+						} else {
+						    alert(data.error || 'Failed to move file');
+						}
+					} catch (error) {
+						console.error('Move error:', error);
+						alert('An error occurred while moving the file');
+					}
 				});
 			}
 
@@ -2433,13 +2433,13 @@
 				
 				// Remove the current directory from target options
 				Array.from(moveTargetDirectorySelect.options).forEach(option => {
-				    option.disabled = option.value === dirname;
+					option.disabled = option.value === dirname;
 				});
 				
 				// Select the first enabled option
 				const firstEnabledOption = Array.from(moveTargetDirectorySelect.options).find(option => !option.disabled);
 				if (firstEnabledOption) {
-				    firstEnabledOption.selected = true;
+					firstEnabledOption.selected = true;
 				}
 				
 				showModal(moveModal);
@@ -2479,112 +2479,112 @@
 			// Update file upload form handler
 			if (document.getElementById('fileUploadForm')) {
 				document.getElementById('fileUploadForm').addEventListener('submit', async function(e) {
-				    e.preventDefault();
-				    hideUploadError();
-				    
-				    const formData = new FormData(this);
-				    const fileInput = this.querySelector('input[type="file"]');
-				    
-				    // Validate file type
-				    if (fileInput.files.length > 0) {
-				        const file = fileInput.files[0];
-				        const ext = file.name.split('.').pop().toLowerCase();
-				        const allowedExtensions = <?php echo json_encode($config['allowedExtensions']); ?>;
-				        
-				        if (!allowedExtensions.includes(ext)) {
-				            showUploadError('Invalid file type. Allowed types: ' + allowedExtensions.join(', '));
-				            return;
-				        }
-				    }
-				    
-				    try {
-				        const response = await fetch(window.location.href, {
-				            method: 'POST',
-				            body: formData
-				        });
-				        
-				        const data = await response.json();
-				        
-				        if (data.success) {
-				            // Only hide modal and reload on success
-				            hideModal(uploadModal);
-				            window.location.reload();
-				        } else {
-				            // Keep modal open and show error
-				            showUploadError(data.error || 'Upload failed');
-				            
-				            // Reset file input on failure while keeping modal open
-				            fileInput.value = '';
-				            const fileNameElement = fileInput.parentElement.querySelector('.file-name');
-				            if (fileNameElement) {
-				                fileNameElement.textContent = '';
-				            }
-				        }
-				    } catch (error) {
-				        console.error('Upload error:', error);
-				        showUploadError('An error occurred during upload');
-				        
-				        // Reset file input on error while keeping modal open
-				        fileInput.value = '';
-				        const fileNameElement = fileInput.parentElement.querySelector('.file-name');
-				        if (fileNameElement) {
-				            fileNameElement.textContent = '';
-				        }
-				    }
+					e.preventDefault();
+					hideUploadError();
+					
+					const formData = new FormData(this);
+					const fileInput = this.querySelector('input[type="file"]');
+					
+					// Validate file type
+					if (fileInput.files.length > 0) {
+						const file = fileInput.files[0];
+						const ext = file.name.split('.').pop().toLowerCase();
+						const allowedExtensions = <?php echo json_encode($config['allowedExtensions']); ?>;
+						
+						if (!allowedExtensions.includes(ext)) {
+						    showUploadError('Invalid file type. Allowed types: ' + allowedExtensions.join(', '));
+						    return;
+						}
+					}
+					
+					try {
+						const response = await fetch(window.location.href, {
+						    method: 'POST',
+						    body: formData
+						});
+						
+						const data = await response.json();
+						
+						if (data.success) {
+						    // Only hide modal and reload on success
+						    hideModal(uploadModal);
+						    window.location.reload();
+						} else {
+						    // Keep modal open and show error
+						    showUploadError(data.error || 'Upload failed');
+						    
+						    // Reset file input on failure while keeping modal open
+						    fileInput.value = '';
+						    const fileNameElement = fileInput.parentElement.querySelector('.file-name');
+						    if (fileNameElement) {
+						        fileNameElement.textContent = '';
+						    }
+						}
+					} catch (error) {
+						console.error('Upload error:', error);
+						showUploadError('An error occurred during upload');
+						
+						// Reset file input on error while keeping modal open
+						fileInput.value = '';
+						const fileNameElement = fileInput.parentElement.querySelector('.file-name');
+						if (fileNameElement) {
+						    fileNameElement.textContent = '';
+						}
+					}
 				});
 			}
 
 			// Update URL upload form handler
 			if (document.getElementById('urlUploadForm')) {
 				document.getElementById('urlUploadForm').addEventListener('submit', async function(e) {
-				    e.preventDefault();
-				    hideUploadError();
-				    
-				    const formData = new FormData(this);
-				    const imageUrl = formData.get('image_url');
-				    const urlInput = this.querySelector('input[name="image_url"]');
-				    
-				    // Basic URL validation
-				    try {
-				        const url = new URL(imageUrl);
-				        const ext = url.pathname.split('.').pop().toLowerCase();
-				        const allowedExtensions = <?php echo json_encode($config['allowedExtensions']); ?>;
-				        
-				        if (!allowedExtensions.includes(ext)) {
-				            showUploadError('Invalid file type. Allowed types: ' + allowedExtensions.join(', '));
-				            return;
-				        }
-				    } catch (error) {
-				        showUploadError('Invalid URL format');
-				        return;
-				    }
-				    
-				    try {
-				        const response = await fetch(window.location.href, {
-				            method: 'POST',
-				            body: formData
-				        });
-				        
-				        const data = await response.json();
-				        
-				        if (data.success) {
-				            // Only hide modal and reload on success
-				            hideModal(uploadModal);
-				            window.location.reload();
-				        } else {
-				            // Keep modal open and show error
-				            showUploadError(data.error || 'Upload failed');
-				            
-				            // Clear URL input on failure while keeping modal open
-				            urlInput.value = '';
-				        }
-				    } catch (error) {
-				        console.error('Upload error:', error);
-				        showUploadError('An error occurred during upload');
-				        
-				        // Clear URL input on error while keeping modal open
-				        urlInput.value = '';
-				    }
+					e.preventDefault();
+					hideUploadError();
+					
+					const formData = new FormData(this);
+					const imageUrl = formData.get('image_url');
+					const urlInput = this.querySelector('input[name="image_url"]');
+					
+					// Basic URL validation
+					try {
+						const url = new URL(imageUrl);
+						const ext = url.pathname.split('.').pop().toLowerCase();
+						const allowedExtensions = <?php echo json_encode($config['allowedExtensions']); ?>;
+						
+						if (!allowedExtensions.includes(ext)) {
+						    showUploadError('Invalid file type. Allowed types: ' + allowedExtensions.join(', '));
+						    return;
+						}
+					} catch (error) {
+						showUploadError('Invalid URL format');
+						return;
+					}
+					
+					try {
+						const response = await fetch(window.location.href, {
+						    method: 'POST',
+						    body: formData
+						});
+						
+						const data = await response.json();
+						
+						if (data.success) {
+						    // Only hide modal and reload on success
+						    hideModal(uploadModal);
+						    window.location.reload();
+						} else {
+						    // Keep modal open and show error
+						    showUploadError(data.error || 'Upload failed');
+						    
+						    // Clear URL input on failure while keeping modal open
+						    urlInput.value = '';
+						}
+					} catch (error) {
+						console.error('Upload error:', error);
+						showUploadError('An error occurred during upload');
+						
+						// Clear URL input on error while keeping modal open
+						urlInput.value = '';
+					}
 				});
 			}
 			
@@ -2619,18 +2619,18 @@
 						let end = text.length;
 						
 						while (start < end) {
-						    const mid = Math.floor((start + end + 1) / 2);
-						    const testText = text.slice(0, mid) + '...';
-						    measurer.textContent = testText;
-						    document.body.appendChild(measurer);
-						    currentWidth = measurer.offsetWidth;
-						    document.body.removeChild(measurer);
-						    
-						    if (currentWidth <= containerWidth * 0.9) {
-						        start = mid;
-						    } else {
-						        end = mid - 1;
-						    }
+							const mid = Math.floor((start + end + 1) / 2);
+							const testText = text.slice(0, mid) + '...';
+							measurer.textContent = testText;
+							document.body.appendChild(measurer);
+							currentWidth = measurer.offsetWidth;
+							document.body.removeChild(measurer);
+							
+							if (currentWidth <= containerWidth * 0.9) {
+								start = mid;
+							} else {
+								end = mid - 1;
+							}
 						}
 						
 						truncated = text.slice(0, start) + '...';
@@ -2656,82 +2656,92 @@
 			// Debounced resize handler
 			window.addEventListener('resize', debounce(initializeTruncation, 250));
 
-				// Initialize all button handlers
-				function initializeButtons() {
-					// Copy buttons
-					document.querySelectorAll('.copy-url-btn').forEach(button => {
-						button.removeEventListener('click', copyUrlHandler);
-						button.addEventListener('click', copyUrlHandler);
-					});
+			// Initialize all button handlers
+			function initializeButtons() {
+				// Copy buttons
+				document.querySelectorAll('.copy-url-btn').forEach(button => {
+					button.removeEventListener('click', copyUrlHandler);
+					button.addEventListener('click', copyUrlHandler);
+				});
 
-					// Delete buttons
-					document.querySelectorAll('.delete-btn').forEach(button => {
-						button.removeEventListener('click', deleteHandler);
-						button.addEventListener('click', deleteHandler);
-					});
+				// Delete buttons
+				document.querySelectorAll('.delete-btn').forEach(button => {
+					button.removeEventListener('click', deleteHandler);
+					button.addEventListener('click', deleteHandler);
+				});
 
-					// Rename buttons
-					document.querySelectorAll('.rename-btn').forEach(button => {
-						button.removeEventListener('click', renameHandler);
-						button.addEventListener('click', renameHandler);
-					});
+				// Rename buttons
+				document.querySelectorAll('.rename-btn').forEach(button => {
+					button.removeEventListener('click', renameHandler);
+					button.addEventListener('click', renameHandler);
+				});
 
-					// Move buttons
-					document.querySelectorAll('.move-btn').forEach(button => {
-						button.removeEventListener('click', moveHandler);
-						button.addEventListener('click', moveHandler);
-					});
+				// Move buttons
+				document.querySelectorAll('.move-btn').forEach(button => {
+					button.removeEventListener('click', moveHandler);
+					button.addEventListener('click', moveHandler);
+				});
 
-					// Add move button to overlay actions if it doesn't exist
-					document.querySelectorAll('.image-overlay-actions').forEach(actions => {
-						if (!actions.querySelector('.move-btn')) {
-						    const moveBtn = document.createElement('button');
-						    moveBtn.className = 'overlay-action-button move-btn';
-						    moveBtn.setAttribute('data-filename', actions.querySelector('.delete-btn').getAttribute('data-filename'));
-						    moveBtn.setAttribute('data-dirname', actions.querySelector('.delete-btn').getAttribute('data-dirname'));
-						    moveBtn.innerHTML = `
-						        <svg class="image-action-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-						            <path d="M5 9l7-7 7 7"/>
-						            <path d="M19 15v4a2 2 0 01-2 2H7a2 2 0 01-2-2v-4"/>
-						            <line x1="12" y1="3" x2="12" y2="15"/>
-						        </svg>
-						        Move
-						    `;
-						    actions.insertBefore(moveBtn, actions.querySelector('.rename-btn'));
-						}
-					});
-				}
+				// Add move button to overlay actions if it doesn't exist
+				document.querySelectorAll('.image-overlay-actions').forEach(actions => {
+					if (!actions.querySelector('.move-btn')) {
+						const moveBtn = document.createElement('button');
+						moveBtn.className = 'overlay-action-button move-btn';
+						moveBtn.setAttribute('data-filename', actions.querySelector('.delete-btn').getAttribute('data-filename'));
+						moveBtn.setAttribute('data-dirname', actions.querySelector('.delete-btn').getAttribute('data-dirname'));
+						moveBtn.innerHTML = `
+							<svg class="image-action-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+							    <path d="M5 9l7-7 7 7"/>
+							    <path d="M19 15v4a2 2 0 01-2 2H7a2 2 0 01-2-2v-4"/>
+							    <line x1="12" y1="3" x2="12" y2="15"/>
+							</svg>
+							Move
+						`;
+						actions.insertBefore(moveBtn, actions.querySelector('.rename-btn'));
+					}
+				});
+			}
 
-				// Notification function
-				function showNotification() {
-					copyNotification.style.display = 'block';
-					copyNotification.classList.add('show');
-					
+			// Notification function
+			function showNotification() {
+				copyNotification.style.display = 'block';
+				copyNotification.classList.add('show');
+				
+				setTimeout(() => {
+					copyNotification.classList.remove('show');
 					setTimeout(() => {
-						copyNotification.classList.remove('show');
-						setTimeout(() => {
-						    copyNotification.style.display = 'none';
-						}, 300);
-					}, 2000);
-				}
+						copyNotification.style.display = 'none';
+					}, 300);
+				}, 2000);
+			}
 
-				// Search functionality
-				function debounce(func, wait) {
-					let timeout;
-					return function() {
-						const context = this, args = arguments;
-						clearTimeout(timeout);
-						timeout = setTimeout(function() {
-							func.apply(context, args);
-						}, wait);
-					};
-				}
+			// Search functionality
+			function debounce(func, wait) {
+				let timeout;
+				return function() {
+					const context = this, args = arguments;
+					clearTimeout(timeout);
+					timeout = setTimeout(function() {
+						func.apply(context, args);
+					}, wait);
+				};
+			}
 
-				const searchInput = document.querySelector('.search-input');
+			// Get the search form and input
+			const searchForm = document.querySelector('.search-form');
+			const searchInput = document.querySelector('.search-input');
 
-				// Handle search with History API
-				searchInput?.addEventListener('input', debounce(function() {
-					const searchValue = this.value;
+			// Set autocomplete off to prevent browser behavior
+			if (searchInput) {
+				searchInput.setAttribute('autocomplete', 'off');
+			}
+
+			// Handle form submission (search button click or Enter key)
+			if (searchForm) {
+				searchForm.addEventListener('submit', function(e) {
+					e.preventDefault();
+					
+					const searchValue = searchForm.querySelector('.search-input').value;
 					const currentUrl = new URL(window.location.href);
 					
 					if (searchValue) {
@@ -2746,9 +2756,10 @@
 						currentUrl.searchParams.set('directory', currentDirectory);
 					}
 					
+					// Update URL
 					window.history.pushState({}, '', currentUrl.toString());
 					
-					// Fetch and update content
+					// Perform search
 					fetch(currentUrl.toString())
 						.then(response => response.text())
 						.then(html => {
@@ -2765,10 +2776,10 @@
 							
 							if (paginationContainer) {
 								if (newPagination) {
-								    paginationContainer.style.display = 'flex';
-								    paginationContainer.innerHTML = newPagination.innerHTML;
+									paginationContainer.style.display = 'flex';
+									paginationContainer.innerHTML = newPagination.innerHTML;
 								} else {
-								    paginationContainer.style.display = 'none';
+									paginationContainer.style.display = 'none';
 								}
 							}
 							
@@ -2782,144 +2793,39 @@
 							if (newGallery) {
 								// Show gallery with results
 								if (galleryContainer) {
-								    galleryContainer.style.display = 'grid';
-								    galleryContainer.innerHTML = newGallery.innerHTML;
+									galleryContainer.style.display = 'grid';
+									galleryContainer.innerHTML = newGallery.innerHTML;
 								}
 								// Remove any existing no-results message
 								const existingNoResults = document.querySelector('.no-results');
 								if (existingNoResults) {
-								    existingNoResults.remove();
+									existingNoResults.remove();
 								}
 							} else if (noResults) {
 								// Hide gallery
 								if (galleryContainer) {
-								    galleryContainer.style.display = 'none';
+									galleryContainer.style.display = 'none';
 								}
 								// Remove any existing no-results message
 								const existingNoResults = document.querySelector('.no-results');
 								if (existingNoResults) {
-								    existingNoResults.remove();
+									existingNoResults.remove();
 								}
 								// Insert new no-results message after gallery stats
 								const galleryStats = document.querySelector('.gallery-stats');
 								galleryStats.insertAdjacentHTML('afterend', noResults.outerHTML);
 							}
 							
+							// Blur the search input to hide keyboard on mobile
+							if (searchInput) {
+								searchInput.blur();
+							}
+							
 							// Reinitialize observers and buttons
 							initializeGalleryFeatures();
 							initializeButtons();
 						});
-				}, 500));
-
-				// Modal close handlers
-				document.getElementById('cancelDelete')?.addEventListener('click', () => hideModal(deleteModal, deleteForm));
-				deleteModal?.querySelector('.modal-close-btn')?.addEventListener('click', () => hideModal(deleteModal, deleteForm));
-				deleteModal?.addEventListener('click', (e) => {
-					if (e.target === deleteModal) hideModal(deleteModal, deleteForm);
 				});
-
-				document.getElementById('cancelRename')?.addEventListener('click', () => hideModal(renameModal, renameForm));
-				renameModal?.querySelector('.modal-close-btn')?.addEventListener('click', () => hideModal(renameModal, renameForm));
-				renameModal?.addEventListener('click', (e) => {
-					if (e.target === renameModal) hideModal(renameModal, renameForm);
-				});
-
-				document.getElementById('cancelMove')?.addEventListener('click', () => hideModal(moveModal, moveForm));
-				moveModal?.querySelector('.modal-close-btn')?.addEventListener('click', () => hideModal(moveModal, moveForm));
-				moveModal?.addEventListener('click', (e) => {
-					if (e.target === moveModal) hideModal(moveModal, moveForm);
-				});
-
-				// Lazy loading with Intersection Observer
-				const observerOptions = {
-					root: null,
-					rootMargin: '50px',
-					threshold: 0.1
-				};
-				
-				const handleIntersection = (entries, observer) => {
-					entries.forEach(entry => {
-						if (entry.isIntersecting) {
-						    const img = entry.target;
-						    const placeholder = img.previousElementSibling;
-						    
-						    if (!img.classList.contains('loaded')) {
-						        img.src = img.dataset.src;
-						        
-						        img.onload = () => {
-						            img.classList.add('loaded');
-						            placeholder.classList.add('hidden');
-						        };
-						        
-						        img.onerror = () => {
-						            placeholder.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`;
-						        };
-						    }
-						    
-						    observer.unobserve(img);
-						}
-					});
-				};
-				
-				const observer = new IntersectionObserver(handleIntersection, observerOptions);
-				
-				// Observe all gallery images
-				document.querySelectorAll('.gallery-image').forEach(img => {
-					observer.observe(img);
-				});
-				
-			// Initialize gallery features
-			function initializeGalleryFeatures() {
-				// Initialize lazy loading
-				document.querySelectorAll('.gallery-image').forEach(img => {
-					observer.observe(img);
-				});
-
-				// Handle touch interactions for gallery items
-				document.querySelectorAll('.gallery-item').forEach(item => {
-					let touchStartY = 0;
-					let touchStartX = 0;
-					let touchTimeStart = 0;
-
-					item.addEventListener('touchstart', function(e) {
-						touchStartY = e.touches[0].clientY;
-						touchStartX = e.touches[0].clientX;
-						touchTimeStart = Date.now();
-					}, { passive: true });
-
-					item.addEventListener('touchend', function(e) {
-						const touchEndY = e.changedTouches[0].clientY;
-						const touchEndX = e.changedTouches[0].clientX;
-						const touchTime = Date.now() - touchTimeStart;
-						
-						// Calculate distance moved
-						const dy = Math.abs(touchEndY - touchStartY);
-						const dx = Math.abs(touchEndX - touchStartX);
-						
-						// If it was a short touch with minimal movement (i.e., a tap)
-						if (touchTime < 300 && dy < 10 && dx < 10) {
-						    if (!this.classList.contains('touch-active')) {
-						        e.preventDefault();
-						        // Remove active class from all other items
-						        document.querySelectorAll('.gallery-item').forEach(otherItem => {
-						            if (otherItem !== this) {
-						                otherItem.classList.remove('touch-active');
-						            }
-						        });
-						        this.classList.add('touch-active');
-						    }
-						}
-					});
-				});
-
-				// Close active overlay when touching outside
-				document.addEventListener('touchstart', function(e) {
-					if (!e.target.closest('.gallery-item')) {
-						document.querySelectorAll('.gallery-item').forEach(item => {
-						    item.classList.remove('touch-active');
-						});
-					}
-				}, { passive: true });
 			}
 
 			// Handle browser back/forward
@@ -2930,16 +2836,19 @@
 			const uploadError = document.querySelector('.upload-error');
 			
 			function showUploadError(message) {
-				uploadError.textContent = message;
-				uploadError.style.display = 'block';
+				if (uploadError) {
+					uploadError.textContent = message;
+					uploadError.style.display = 'block';
+				}
 			}
 			
 			function hideUploadError() {
-				uploadError.style.display = 'none';
-				uploadError.textContent = '';
+				if (uploadError) {
+					uploadError.style.display = 'none';
+					uploadError.textContent = '';
+				}
 			}
 			
-
 			let isScrolling = false;
 			let scrollTimeout;
 			let overlayActivationTime = 0;
@@ -2963,7 +2872,40 @@
 				}, 100);
 			}
 
-			// Update the touch interaction handlers
+			// Lazy loading with Intersection Observer
+			const observerOptions = {
+				root: null,
+				rootMargin: '50px',
+				threshold: 0.1
+			};
+			
+			const handleIntersection = (entries, observer) => {
+				entries.forEach(entry => {
+					if (entry.isIntersecting) {
+						const img = entry.target;
+						const placeholder = img.previousElementSibling;
+						
+						if (!img.classList.contains('loaded')) {
+							img.src = img.dataset.src;
+							
+							img.onload = () => {
+							    img.classList.add('loaded');
+							    placeholder.classList.add('hidden');
+							};
+							
+							img.onerror = () => {
+							    placeholder.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`;
+							};
+						}
+						
+						observer.unobserve(img);
+					}
+				});
+			};
+			
+			const observer = new IntersectionObserver(handleIntersection, observerOptions);
+			
+			// Initialize gallery features
 			function initializeGalleryFeatures() {
 				// Initialize lazy loading
 				document.querySelectorAll('.gallery-image').forEach(img => {
@@ -2975,8 +2917,8 @@
 					button.addEventListener('touchstart', function(e) {
 						// If overlay was just activated, prevent button interaction
 						if (Date.now() - overlayActivationTime < OVERLAY_ACTIVATION_DELAY) {
-						    e.preventDefault();
-						    e.stopPropagation();
+							e.preventDefault();
+							e.stopPropagation();
 						}
 					}, { capture: true }); // Use capture phase to intercept before regular handlers
 				});
@@ -2991,9 +2933,9 @@
 						if (isScrolling) return;
 						
 						if (!this.classList.contains('touch-active')) {
-						    touchStartY = e.touches[0].clientY;
-						    touchStartX = e.touches[0].clientX;
-						    touchTimeStart = Date.now();
+							touchStartY = e.touches[0].clientY;
+							touchStartX = e.touches[0].clientX;
+							touchTimeStart = Date.now();
 						}
 					}, { passive: true });
 
@@ -3002,28 +2944,28 @@
 						
 						// Handle initial tap to show overlay
 						if (!this.classList.contains('touch-active')) {
-						    const touchEndY = e.changedTouches[0].clientY;
-						    const touchEndX = e.changedTouches[0].clientX;
-						    const touchTime = Date.now() - touchTimeStart;
-						    
-						    const dy = Math.abs(touchEndY - touchStartY);
-						    const dx = Math.abs(touchEndX - touchStartX);
-						    
-						    if (touchTime < 300 && dy < 10 && dx < 10) {
-						        e.preventDefault();
-						        e.stopPropagation();
-						        
-						        // Remove active class from all other items
-						        document.querySelectorAll('.gallery-item').forEach(otherItem => {
-						            if (otherItem !== this) {
-						                otherItem.classList.remove('touch-active');
-						            }
-						        });
-						        
-						        // Show this overlay and record the time
-						        this.classList.add('touch-active');
-						        overlayActivationTime = Date.now();
-						    }
+							const touchEndY = e.changedTouches[0].clientY;
+							const touchEndX = e.changedTouches[0].clientX;
+							const touchTime = Date.now() - touchTimeStart;
+							
+							const dy = Math.abs(touchEndY - touchStartY);
+							const dx = Math.abs(touchEndX - touchStartX);
+							
+							if (touchTime < 300 && dy < 10 && dx < 10) {
+								e.preventDefault();
+								e.stopPropagation();
+								
+								// Remove active class from all other items
+								document.querySelectorAll('.gallery-item').forEach(otherItem => {
+								    if (otherItem !== this) {
+								        otherItem.classList.remove('touch-active');
+								    }
+								});
+								
+								// Show this overlay and record the time
+								this.classList.add('touch-active');
+								overlayActivationTime = Date.now();
+							}
 						}
 					});
 				});
@@ -3034,7 +2976,7 @@
 						!e.target.closest('.gallery-item') && 
 						!e.target.closest('.overlay-action-button')) {
 						document.querySelectorAll('.gallery-item').forEach(item => {
-						    item.classList.remove('touch-active');
+							item.classList.remove('touch-active');
 						});
 					}
 				}, { passive: true });
@@ -3043,34 +2985,85 @@
 			// Add scroll event listener
 			window.addEventListener('scroll', handleScroll, { passive: true });
 
-				// Clear error when switching tabs
-				document.querySelectorAll('.upload-tab-btn').forEach(button => {
-					button.addEventListener('click', () => {
-						hideUploadError();
-					});
-				});
-
-				// Clear error when closing modal
-				document.querySelector('#uploadModal .modal-close-btn').addEventListener('click', () => {
+			// Clear error when switching tabs
+			document.querySelectorAll('.upload-tab-btn').forEach(button => {
+				button.addEventListener('click', () => {
 					hideUploadError();
 				});
+			});
 
-				// Handle escape key for modals
-				document.addEventListener('keydown', (e) => {
-					if (e.key === 'Escape') {
-						if (uploadModal?.classList.contains('show')) hideUploadModal();
-						if (deleteModal?.classList.contains('show')) hideModal(deleteModal, deleteForm);
-						if (renameModal?.classList.contains('show')) hideModal(renameModal, renameForm);
-						if (moveModal?.classList.contains('show')) hideModal(moveModal, moveForm);
-						if (loginModal?.classList.contains('show')) hideLoginModal();
-					}
+			// Clear error when closing modal
+			document.querySelector('#uploadModal .modal-close-btn')?.addEventListener('click', () => {
+				hideUploadError();
+			});
+
+			// Handle escape key for modals
+			document.addEventListener('keydown', (e) => {
+				if (e.key === 'Escape') {
+					if (uploadModal?.classList.contains('show')) hideUploadModal();
+					if (deleteModal?.classList.contains('show')) hideModal(deleteModal, deleteForm);
+					if (renameModal?.classList.contains('show')) hideModal(renameModal, renameForm);
+					if (moveModal?.classList.contains('show')) hideModal(moveModal, moveForm);
+					if (loginModal?.classList.contains('show')) hideLoginModal();
+				}
+			});
+
+		// Fix for delete modal buttons
+		if (deleteModal) {
+			// Fix close button
+			const deleteCloseBtn = deleteModal.querySelector('.modal-close-btn');
+			if (deleteCloseBtn) {
+				deleteCloseBtn.addEventListener('click', () => {
+				    hideModal(deleteModal, deleteForm);
 				});
+			}
 
-				// Initial setup
-				initializeGalleryFeatures();
-				initializeButtons();
+			// Fix cancel button
+			const cancelDeleteBtn = document.getElementById('cancelDelete');
+			if (cancelDeleteBtn) {
+				cancelDeleteBtn.addEventListener('click', () => {
+				    hideModal(deleteModal, deleteForm);
+				});
+			}
 
-	});
+			// Close when clicking outside the modal
+			deleteModal.addEventListener('click', (e) => {
+				if (e.target === deleteModal) {
+				    hideModal(deleteModal, deleteForm);
+				}
+			});
+		}
+
+		// Fix for move modal buttons
+		if (moveModal) {
+			// Fix close button
+			const moveCloseBtn = moveModal.querySelector('.modal-close-btn');
+			if (moveCloseBtn) {
+				moveCloseBtn.addEventListener('click', () => {
+				    hideModal(moveModal, moveForm);
+				});
+			}
+
+			// Fix cancel button
+			const cancelMoveBtn = document.getElementById('cancelMove');
+			if (cancelMoveBtn) {
+				cancelMoveBtn.addEventListener('click', () => {
+				    hideModal(moveModal, moveForm);
+				});
+			}
+
+			// Close when clicking outside the modal
+			moveModal.addEventListener('click', (e) => {
+				if (e.target === moveModal) {
+				    hideModal(moveModal, moveForm);
+				}
+			});
+		}
+			
+			// Initial setup
+			initializeGalleryFeatures();
+			initializeButtons();
+		});
 	</script>
 </body>
 </html>

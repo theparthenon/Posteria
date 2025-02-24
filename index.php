@@ -46,15 +46,15 @@
 	}
 	
 	$site_title = getEnvWithFallback('SITE_TITLE', 'Posteria');
-
+	
 	require_once './posters/config.php';
-
+	
 	$config = [
 		'directories' => [
-		    'movies' => 'posters/movies/',
-		    'tv-shows' => 'posters/tv-shows/',
-		    'tv-seasons' => 'posters/tv-seasons/',
-		    'collections' => 'posters/collections/'
+			'movies' => 'posters/movies/',
+			'tv-shows' => 'posters/tv-shows/',
+			'tv-seasons' => 'posters/tv-seasons/',
+			'collections' => 'posters/collections/'
 		],
 		'imagesPerPage' => getIntEnvWithFallback('IMAGES_PER_PAGE', 24),
 		'allowedExtensions' => ['jpg', 'jpeg', 'png', 'webp'],
@@ -707,7 +707,7 @@
 		}
 
 		body {
-			font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
 			line-height: 1.6;
 			color: var(--text-primary);
 			background-color: var(--bg-primary);
@@ -755,6 +755,7 @@
 
 		.site-name svg {
 			flex-shrink: 0; /* Prevents SVG from shrinking */
+			height: 50px;
 		}
 
 		/* Auth Actions */
@@ -963,15 +964,24 @@
 			position: relative;
 			overflow: hidden;
 			border-radius: 12px 12px 0 0;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			aspect-ratio: 2/3;  /* Standard movie poster ratio */
+			width: 100%;
+			background: var(--bg-tertiary);
 		}
 
 		.gallery-image {
 			width: 100%;
-			height: auto;
-			object-fit: cover;
+			height: 100%;
+			object-fit: cover; /* Changed from cover to contain */
 			display: block;
 			transition: transform 0.5s ease, opacity 0.3s ease;
 			opacity: 0;
+			background: var(--bg-tertiary);
+			max-height: 100%;
+			max-width: 100%;
 		}
 
 		.gallery-image.loaded {
@@ -1645,15 +1655,15 @@
 
 		@media (max-width: 768px) {
 
-		.filter-button {
-		padding: 3px 10px;
-		}
+			.filter-button {
+			padding: 3px 10px;
+			}
 
-		.filter-buttons {
-			font-size: .8rem;
-			flex-wrap: nowrap;
-			gap: 0;
-		}
+			.filter-buttons {
+				font-size: .8rem;
+				flex-wrap: nowrap;
+				gap: 0;
+			}
 			body {
 				padding: 15px;
 			}
@@ -1694,18 +1704,16 @@
 
 		@media (max-width: 480px) {
 
-		.filter-button {
-		padding: 3px 10px;
-		}
-
-		.filter-buttons {
-			font-size: .76rem;
-			flex-wrap: nowrap;
-			gap: 0;
-		}
-			.site-name-text {
-				display: none;
+			.filter-button {
+			padding: 3px 10px;
 			}
+
+			.filter-buttons {
+				font-size: .76rem;
+				flex-wrap: nowrap;
+				gap: 0;
+			}
+
 			.gallery {
 				grid-template-columns: repeat(2, 1fr);
 			}
@@ -1871,7 +1879,7 @@
 							<path d="M65 65 L95 80 L65 95 Z" fill="#E5A00D"/>
 						  </g>
 						</svg>
-						<span class="site-name-text"><?php echo htmlspecialchars($site_title); ?></span>
+						<?php echo htmlspecialchars($site_title); ?>
 					</h1>
 				</a>
 				<?php if (isLoggedIn()): ?>

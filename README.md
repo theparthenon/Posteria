@@ -3,11 +3,13 @@
 Posteria is a web-based media poster management system that allows you to organize and store custom posters for your movies, TV shows, seasons, and collections. It provides an elegant interface for uploading, managing, and accessing your media artwork.
 
 ## Features
+Here's the updated version with the PWA line added:
 
 - 🖼️ Clean, modern interface for managing media posters
 - 📁 Organized categories for Movies, TV Shows, TV Seasons, and Collections
 - 🔍 Fast, fuzzy search functionality
 - 📱 Mobile-responsive design
+- 📲 Installable as a PWA (Progressive Web App)
 - 🔒 Simple authentication system
 - ⚡ Easy poster upload from local files or URLs
 - 🔄 Move posters between categories

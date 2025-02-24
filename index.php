@@ -740,7 +740,7 @@
 			font-weight: 600;
 			letter-spacing: -0.025em;
 			color: var(--text-primary);
-			font-size: 2.5rem;
+			font-size: 3rem;
 			margin-bottom: 15px;
 		}
 
@@ -755,7 +755,7 @@
 
 		.site-name svg {
 			flex-shrink: 0; /* Prevents SVG from shrinking */
-			height: 50px;
+			height: 80px;
 		}
 
 		/* Auth Actions */
@@ -1677,6 +1677,10 @@
 				font-size: 2rem;
 			}
 			
+			.site-name svg {
+				height: 50px;
+			}
+			
 			.search-input, 
 			.search-button {
 				padding: 12px 16px;
@@ -1724,6 +1728,10 @@
 			
 			h1 {
 				font-size: 1.75rem;
+			}
+			
+			.site-name svg {
+				height: 50px;
 			}
 
 			.header-content {

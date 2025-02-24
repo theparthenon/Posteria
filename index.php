@@ -676,7 +676,6 @@
 			scrollbar-width: thin;
 		}
 
-		/* Replace the existing Custom Scrollbar section with this */
 		/* Custom Scrollbar */
 		::-webkit-scrollbar {
 			width: 12px;
@@ -1501,24 +1500,6 @@
 			opacity: 1;
 		}
 
-		/* Custom Scrollbar */
-		::-webkit-scrollbar {
-			width: 10px;
-		}
-
-		::-webkit-scrollbar-track {
-			background: var(--bg-primary);
-		}
-
-		::-webkit-scrollbar-thumb {
-			background: var(--bg-tertiary);
-			border-radius: 5px;
-		}
-
-		::-webkit-scrollbar-thumb:hover {
-			background: var(--accent-primary);
-		}
-
 		.copy-notification {
 			position: fixed;
 			bottom: 25px;
@@ -1625,24 +1606,6 @@
 			justify-content: center;
 			padding: 8px;
 			color: var(--text-secondary);
-		}
-
-		/* Custom Scrollbar */
-		::-webkit-scrollbar {
-			width: 10px;
-		}
-
-		::-webkit-scrollbar-track {
-			background: var(--bg-primary);
-		}
-
-		::-webkit-scrollbar-thumb {
-			background: var(--bg-tertiary);
-			border-radius: 5px;
-		}
-
-		::-webkit-scrollbar-thumb:hover {
-			background: var(--accent-primary);
 		}
 
 		/* Responsive Styles */

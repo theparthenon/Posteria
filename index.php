@@ -1977,7 +1977,7 @@
 		                <h4 style="margin-bottom: 12px;">If file already exists</h4>
 		                <div class="directory-select" style="margin-bottom: 16px;">
 		                    <select id="fileHandling" class="login-input">
-		                        <option value="overwrite">Overwrite</option>
+		                        <option value="overwrite">Update if Changed</option>
 		                        <option value="copy">Create copy</option>
 		                        <option value="skip">Skip</option>
 		                    </select>

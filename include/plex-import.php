@@ -584,6 +584,24 @@ try {
         return ['success' => true, 'data' => $allCollections];
     }
 
+    // NEW FUNCTION: Get image data without saving it
+    function getPlexImageData($serverUrl, $token, $thumb) {
+        try {
+            $url = rtrim($serverUrl, '/') . $thumb;
+            $headers = [];
+            foreach (getPlexHeaders($token) as $key => $value) {
+                $headers[] = $key . ': ' . $value;
+            }
+            
+            // Pass false to indicate we don't expect JSON for image downloads
+            $imageData = makeApiRequest($url, $headers, false);
+            return ['success' => true, 'data' => $imageData];
+        } catch (Exception $e) {
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
+    }
+
+    // UPDATED: Function to download and save Plex image to file
     function downloadPlexImage($serverUrl, $token, $thumb, $targetPath) {
         try {
             $url = rtrim($serverUrl, '/') . $thumb;
@@ -606,46 +624,132 @@ try {
         }
     }
 
-    // Process a batch of items
-	function processBatch($items, $serverUrl, $token, $targetDir, $overwriteOption, $mediaType = '') {
-		$results = [
-		    'successful' => 0,
-		    'skipped' => 0,
-		    'failed' => 0,
-		    'errors' => []
-		];
-		
-		foreach ($items as $item) {
-		    $title = $item['title'];
-		    $id = $item['id'];
-		    $thumb = $item['thumb'];
-		    
-		    // Generate target filename - passing mediaType parameter
-		    $extension = 'jpg'; // Plex thumbnails are usually JPG
-		    $filename = generatePlexFilename($title, $id, $extension, $mediaType);
-		    $targetPath = $targetDir . $filename;
-		    
-		    // Handle existing file
-		    $finalPath = handleExistingFile($targetPath, $overwriteOption, $filename, $extension);
-		    
-		    if ($finalPath === false) {
-		        $results['skipped']++;
-		        continue; // Skip this file
-		    }
-		    
-		    // Download the image
-		    $downloadResult = downloadPlexImage($serverUrl, $token, $thumb, $finalPath);
-		    
-		    if ($downloadResult['success']) {
-		        $results['successful']++;
-		    } else {
-		        $results['failed']++;
-		        $results['errors'][] = "Failed to download {$title}: {$downloadResult['error']}";
-		    }
-		}
-		
-		return $results;
-	}
+    // NEW FUNCTION: Compare image data with existing file
+    function compareAndSaveImage($imageData, $targetPath) {
+        // Check if the file exists and compare content
+        if (file_exists($targetPath)) {
+            $existingData = file_get_contents($targetPath);
+            
+            // If content is identical, no need to save
+            if ($existingData === $imageData) {
+                return ['success' => true, 'unchanged' => true];
+            }
+        }
+        
+        // Content is different or file doesn't exist, save it
+        if (!file_put_contents($targetPath, $imageData)) {
+            return ['success' => false, 'error' => "Failed to save image to: {$targetPath}"];
+        }
+        
+        chmod($targetPath, 0644);
+        return ['success' => true, 'unchanged' => false];
+    }
+
+    // UPDATED: Process a batch of items with smart overwrite
+    function processBatch($items, $serverUrl, $token, $targetDir, $overwriteOption, $mediaType = '') {
+        $results = [
+            'successful' => 0,
+            'skipped' => 0,
+            'unchanged' => 0, // Counter for files that were checked but not modified because content was identical
+            'failed' => 0,
+            'errors' => [],
+            'skippedDetails' => [] // Track reasons for skipped files
+        ];
+        
+        foreach ($items as $item) {
+            $title = $item['title'];
+            $id = $item['id'];
+            $thumb = $item['thumb'];
+            
+            // Generate target filename - passing mediaType parameter
+            $extension = 'jpg'; // Plex thumbnails are usually JPG
+            $filename = generatePlexFilename($title, $id, $extension, $mediaType);
+            $targetPath = $targetDir . $filename;
+            
+            // Handle existing file based on overwrite option
+            if (file_exists($targetPath)) {
+                if ($overwriteOption === 'skip') {
+                    $results['skipped']++;
+                    $results['skippedDetails'][] = [
+                        'file' => $filename,
+                        'reason' => 'skip_option',
+                        'message' => "Skipped {$title} - file already exists and skip option selected"
+                    ];
+                    logDebug("Skipped file (skip option): {$targetPath}");
+                    continue; // Skip this file
+                } else if ($overwriteOption === 'copy') {
+                    // Create a new filename with counter
+                    $dir = dirname($targetPath);
+                    $basename = pathinfo($filename, PATHINFO_FILENAME);
+                    $counter = 1;
+                    $newPath = $targetPath;
+                    
+                    while (file_exists($newPath)) {
+                        $newName = $basename . " ({$counter})." . $extension;
+                        $newPath = $dir . '/' . $newName;
+                        $counter++;
+                    }
+                    $targetPath = $newPath;
+                    
+                    // For 'copy', we'll download directly
+                    $downloadResult = downloadPlexImage($serverUrl, $token, $thumb, $targetPath);
+                    
+                    if ($downloadResult['success']) {
+                        $results['successful']++;
+                    } else {
+                        $results['failed']++;
+                        $results['errors'][] = "Failed to download {$title}: {$downloadResult['error']}";
+                    }
+                    continue;
+                } else if ($overwriteOption === 'overwrite') {
+                    // For overwrite, we'll check if content has changed
+                    $imageResult = getPlexImageData($serverUrl, $token, $thumb);
+                    
+                    if (!$imageResult['success']) {
+                        $results['failed']++;
+                        $results['errors'][] = "Failed to download {$title}: {$imageResult['error']}";
+                        continue;
+                    }
+                    
+                    // Compare and save if different
+                    $saveResult = compareAndSaveImage($imageResult['data'], $targetPath);
+                    
+                    if ($saveResult['success']) {
+                        if (isset($saveResult['unchanged']) && $saveResult['unchanged']) {
+                            // Count as skipped for UI consistency, but track the reason
+                            $results['skipped']++;
+                            $results['unchanged']++;
+                            $results['skippedDetails'][] = [
+                                'file' => $filename,
+                                'reason' => 'unchanged',
+                                'message' => "Skipped {$title} - content identical to existing file"
+                            ];
+                            logDebug("Skipped file (unchanged content): {$targetPath}");
+                        } else {
+                            $results['successful']++;
+                            logDebug("Updated file (content changed): {$targetPath}");
+                        }
+                    } else {
+                        $results['failed']++;
+                        $results['errors'][] = "Failed to save {$title}: {$saveResult['error']}";
+                    }
+                    continue;
+                }
+            } else {
+                // File doesn't exist, download directly
+                $downloadResult = downloadPlexImage($serverUrl, $token, $thumb, $targetPath);
+                
+                if ($downloadResult['success']) {
+                    $results['successful']++;
+                } else {
+                    $results['failed']++;
+                    $results['errors'][] = "Failed to download {$title}: {$downloadResult['error']}";
+                }
+            }
+        }
+        
+        return $results;
+    }
 
     // API Endpoints
 
@@ -730,6 +834,7 @@ try {
         $totalStats = [
             'successful' => 0,
             'skipped' => 0,
+            'unchanged' => 0, // Added unchanged counter
             'failed' => 0,
             'errors' => []
         ];
@@ -772,7 +877,9 @@ try {
                             'totalStats' => [
                                 'successful' => $batchResults['successful'],
                                 'skipped' => $batchResults['skipped'],
-                                'failed' => $batchResults['failed']
+                                'unchanged' => $batchResults['unchanged'],
+                                'failed' => $batchResults['failed'],
+                                'skippedDetails' => $batchResults['skippedDetails']
                             ]
                         ]);
                         exit;
@@ -822,6 +929,7 @@ try {
                             'totalStats' => [
                                 'successful' => $batchResults['successful'],
                                 'skipped' => $batchResults['skipped'],
+                                'unchanged' => $batchResults['unchanged'], // Added unchanged count
                                 'failed' => $batchResults['failed']
                             ]
                         ]);
@@ -861,7 +969,9 @@ try {
                                 // Get running totals from previous batches if available
                                 $totalStats['successful'] = isset($_POST['totalSuccessful']) ? (int)$_POST['totalSuccessful'] : 0;
                                 $totalStats['skipped'] = isset($_POST['totalSkipped']) ? (int)$_POST['totalSkipped'] : 0;
+                                $totalStats['unchanged'] = isset($_POST['totalUnchanged']) ? (int)$_POST['totalUnchanged'] : 0;
                                 $totalStats['failed'] = isset($_POST['totalFailed']) ? (int)$_POST['totalFailed'] : 0;
+                                $totalStats['skippedDetails'] = isset($_POST['skippedDetails']) ? json_decode($_POST['skippedDetails'], true) : [];
                                 
                                 if ($seasonsResult['success'] && !empty($seasonsResult['data'])) {
                                     $items = $seasonsResult['data'];
@@ -871,6 +981,7 @@ try {
                                     // Update running totals
                                     $totalStats['successful'] += $batchResults['successful'];
                                     $totalStats['skipped'] += $batchResults['skipped'];
+                                    $totalStats['unchanged'] += $batchResults['unchanged']; // Added unchanged count
                                     $totalStats['failed'] += $batchResults['failed'];
                                     
                                     if (!empty($batchResults['errors'])) {
@@ -878,7 +989,6 @@ try {
                                     }
                                 } else {
                                     $items = []; // No seasons for this show
-                                    $batchResults = processBatch($currentBatch, $plex_config['server_url'], $plex_config['token'], $targetDir, $overwriteOption, $type);
                                 }
                                 
                                 // Return batch progress information for the controller
@@ -913,6 +1023,7 @@ try {
                                     'results' => [
                                         'successful' => 0,
                                         'skipped' => 0,
+                                        'unchanged' => 0, // Added unchanged count
                                         'failed' => 0,
                                         'errors' => []
                                     ],
@@ -971,6 +1082,7 @@ try {
                                 'totalStats' => [
                                     'successful' => $batchResults['successful'],
                                     'skipped' => $batchResults['skipped'],
+                                    'unchanged' => $batchResults['unchanged'], // Added unchanged count
                                     'failed' => $batchResults['failed']
                                 ]
                             ]);
@@ -1022,6 +1134,7 @@ try {
                             'totalStats' => [
                                 'successful' => $batchResults['successful'],
                                 'skipped' => $batchResults['skipped'],
+                                'unchanged' => $batchResults['unchanged'], // Added unchanged count
                                 'failed' => $batchResults['failed']
                             ]
                         ]);
@@ -1052,6 +1165,7 @@ try {
                 'totalStats' => [
                     'successful' => $results['successful'],
                     'skipped' => $results['skipped'],
+                    'unchanged' => $results['unchanged'], // Added unchanged count
                     'failed' => $results['failed']
                 ]
             ]);

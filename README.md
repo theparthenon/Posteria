@@ -86,7 +86,7 @@ The Docker container uses the following volume mounts:
 3. Upload posters via the upload button:
    - Support for local file upload
    - Support for direct URL upload
-4. Import from Plex
+4. Import posters from your Plex Media Server
 5. Manage your posters:
    - Move between categories
    - Rename files

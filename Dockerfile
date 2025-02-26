@@ -30,11 +30,13 @@ RUN mkdir -p /var/www/html/posters/movies \
     /var/www/html/posters/tv-shows \
     /var/www/html/posters/tv-seasons \
     /var/www/html/posters/collections \
-    /var/www/html/assets
+    /var/www/html/assets \
+    /var/www/html/include
 
 # Copy the application files
 COPY index.php /var/www/html/
-COPY posters/config.php /var/www/html/posters/
+COPY include/plex-import.php /var/www/html/include/
+COPY include/config.php /var/www/html/include/
 
 # Copy assets directory
 COPY assets/ /var/www/html/assets/

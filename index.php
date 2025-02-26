@@ -47,7 +47,7 @@
 	
 	$site_title = getEnvWithFallback('SITE_TITLE', 'Posteria');
 	
-	require_once './posters/config.php';
+	require_once './include/config.php';
 	
 	$config = [
 		'directories' => [
@@ -272,7 +272,7 @@
 		
 		return $links;
 	}
-
+	
 	// Handle login
 	if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'login' && 
 		isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
@@ -1268,7 +1268,6 @@
 			border-radius: 6px;
 			color: var(--text-primary);
 			width: 100%;
-			height: 40px;
 		}
 
 		/* Style for select elements using login-input class */
@@ -1617,6 +1616,10 @@
 		}
 
 		@media (max-width: 768px) {
+		
+		    .site-title {
+		    	display: none;
+		    }
 
 			.filter-button {
 			padding: 3px 10px;
@@ -1670,6 +1673,10 @@
 		}
 
 		@media (max-width: 480px) {
+		
+			.site-title {
+		    	display: none;
+		    }
 
 			.filter-button {
 			padding: 3px 10px;
@@ -1850,11 +1857,21 @@
 							<path d="M65 65 L95 80 L65 95 Z" fill="#E5A00D"/>
 						  </g>
 						</svg>
-						<?php echo htmlspecialchars($site_title); ?>
+						<span class="site-title"><?php echo htmlspecialchars($site_title); ?></span>
 					</h1>
 				</a>
 				<?php if (isLoggedIn()): ?>
 				    <div class="auth-actions">
+						<?php if (!empty($plex_config['token']) && !empty($plex_config['server_url'])): ?>
+						<button id="showPlexImportModal" class="upload-trigger-button">
+						<svg class="upload-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+							<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+							<polyline points="8 7 3 12 8 17"></polyline>
+							<line x1="3" y1="12" x2="15" y2="12"></line>
+						</svg>
+							Import from Plex
+						</button>
+						<?php endif; ?>
 				        <button id="showUploadModal" class="upload-trigger-button">
 				            <svg class="upload-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 				                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -1884,6 +1901,157 @@
 		        <?php endif; ?>
 			</div>
 		</header>
+		
+	<!-- Plex Import Modal -->
+	<div id="plexImportModal" class="modal">
+		<div class="modal-content" style="max-width: 600px;">
+		    <div class="modal-header">
+		        <h3>Import Posters from Plex</h3>
+		        <button type="button" class="modal-close-btn">×</button>
+		    </div>
+
+		    <div class="plex-import-content">
+		        <div id="plexConnectionStatus" style="margin-bottom: 20px; display: none;"></div>
+		        
+		        <!-- Plex Import Options -->
+		        <div id="plexImportOptions">
+		            <!-- Step 1: Media Type -->
+		            <div class="import-step" id="importTypeStep">
+		                <h4 style="margin-bottom: 12px;">What would you like to import?</h4>
+		                <div class="directory-select" style="margin-bottom: 16px;">
+		                    <select id="plexImportType" class="login-input">
+		                        <option value="">Select content type...</option>
+		                        <option value="movies">Movies</option>
+		                        <option value="shows">TV Shows</option>
+		                        <option value="seasons">TV Seasons</option>
+		                        <option value="collections">Collections</option>
+		                    </select>
+		                </div>
+		            </div>
+		            
+		            <!-- Step 2: Library Selection -->
+		            <div class="import-step" id="librarySelectionStep" style="display: none;">
+		                <h4 style="margin-bottom: 12px;">Select Library</h4>
+		                <div class="directory-select" style="margin-bottom: 16px;">
+		                    <select id="plexLibrary" class="login-input">
+		                        <option value="">Loading libraries...</option>
+		                    </select>
+		                </div>
+		            </div>
+		            
+		            <!-- New: Option to import all seasons -->
+		            <div class="import-step" id="seasonsOptionsStep" style="display: none;">
+		                <div style="margin-bottom: 16px;">
+		                    <label class="checkbox-container" style="display: flex; align-items: center; cursor: pointer; margin-top: 8px;">
+		                        <input type="checkbox" id="importAllSeasons" style="margin-right: 8px;">
+		                        <span>Import all seasons from all shows (may take longer)</span>
+		                    </label>
+		                </div>
+		            </div>
+		            
+		            <!-- Step 2b: Show Selection (only for seasons) -->
+		            <div class="import-step" id="showSelectionStep" style="display: none;">
+		                <h4 style="margin-bottom: 12px;">Select TV Show</h4>
+		                <div class="directory-select" style="margin-bottom: 16px;">
+		                    <select id="plexShow" class="login-input">
+		                        <option value="">Loading shows...</option>
+		                    </select>
+		                </div>
+		            </div>
+		            
+		            <!-- Step 3: Target Directory -->
+		            <div class="import-step" id="targetDirectoryStep" style="display: none;">
+		                <h4 style="margin-bottom: 12px;">Save to Directory</h4>
+		                <div class="directory-select" style="margin-bottom: 16px;">
+		                    <select id="targetDirectory" class="login-input">
+		                        <option value="movies">Movies</option>
+		                        <option value="tv-shows">TV Shows</option>
+		                        <option value="tv-seasons">TV Seasons</option>
+		                        <option value="collections">Collections</option>
+		                    </select>
+		                </div>
+		            </div>
+		            
+		            <!-- Step 4: File Handling -->
+		            <div class="import-step" id="fileHandlingStep" style="display: none;">
+		                <h4 style="margin-bottom: 12px;">If file already exists</h4>
+		                <div class="directory-select" style="margin-bottom: 16px;">
+		                    <select id="fileHandling" class="login-input">
+		                        <option value="overwrite">Overwrite</option>
+		                        <option value="copy">Create copy</option>
+		                        <option value="skip">Skip</option>
+		                    </select>
+		                </div>
+		            </div>
+		            
+		            <div class="import-error" style="display: none; color: var(--danger-color); background: rgba(239, 68, 68, 0.1); border: 1px solid var(--danger-color); padding: 12px; border-radius: 6px; margin-top: 16px;"></div>
+		            
+		            <div class="modal-actions" style="margin-top: 32px; justify-content: end;">
+		                <button type="button" id="startPlexImport" class="modal-button rename" disabled>
+		                    Start Import
+		                </button>
+		            </div>
+		        </div>
+		        
+		        <!-- Progress Container (hidden by default) -->
+		        <div id="importProgressContainer" style="display: none; text-align: center;">              
+		            <div>
+		                <h3 id="importProgressStatus">Importing posters...</h3>
+		                <div id="importProgressBar" style="height: 8px; background: #333; border-radius: 4px; margin: 16px 0; overflow: hidden;">
+		                    <div style="height: 100%; width: 0%; background: linear-gradient(45deg, var(--accent-primary), #ff9f43); transition: width 0.3s;"></div>
+		                </div>
+		                <div id="importProgressDetails" style="margin-top: 10px; color: var(--text-secondary);">
+		                    Processing 0 of 0 items (0%)
+		                </div>
+		                <p style="margin-top: 20px; color: var(--text-secondary); font-style: italic;">
+		                    This process can take a while with large libraries. 
+		                </p>
+		                <p style="margin-top: 10px; color: var(--text-secondary); font-style: italic;">
+		                    Please don't refresh or close the window until import is complete.
+		                </p>
+		            </div>
+		        </div>
+		        
+		        <!-- Results Container (hidden by default) -->
+		        <div id="importResultsContainer" style="display: none; text-align: center;">
+		            <h3 style="margin-bottom: 16px; margin-top: 20px; display: flex; justify-content: center; align-items: center;">                    
+		                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="var(--success-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+		                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+		                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+		                </svg>
+		                <span style="margin-left: 10px;">Import Complete</span>
+		            </h3>
+		            
+		            <div id="importErrors" style="display: none; margin-top: 20px; text-align: left; max-height: 150px; overflow-y: auto; padding: 12px; background: rgba(239, 68, 68, 0.1); border: 1px solid var(--danger-color); border-radius: 6px;">
+		                <h4 style="margin-bottom: 8px; color: var(--danger-color);">Errors:</h4>
+		                <ul style="margin-left: 20px; color: var(--danger-color);"></ul>
+		            </div>
+		            
+		            <div class="modal-actions" style="margin-top: 20px; justify-content: end;">
+					<button type="button" id="closeImportResults" class="modal-button rename" onclick="document.getElementById('plexImportModal').classList.remove('show'); setTimeout(function() { document.getElementById('plexImportModal').style.display = 'none'; window.location.reload(); }, 300);">
+						Close
+					</button>
+		            </div>
+		        </div>
+		    </div>
+		</div>
+	</div>
+
+	<!-- Error Modal for Plex Import -->
+	<div id="plexErrorModal" class="modal">
+		<div class="modal-content">
+		    <div class="modal-header">
+		        <h3>Import Error</h3>
+		        <button type="button" class="modal-close-btn">×</button>
+		    </div>
+		    <div class="modal-body">
+		        <p id="plexErrorMessage" style="margin-bottom: 20px; color: var(--danger-color);"></p>
+		        <div class="modal-actions">
+		            <button type="button" class="modal-button cancel plexErrorClose">Close</button>
+		        </div>
+		    </div>
+		</div>
+	</div>
 		    
 		<div class="search-container">
 		    <form class="search-form" method="GET" action="">
@@ -1923,7 +2091,6 @@
 					<?php else: ?>
 						<p>No posters match your filter type.</p>
 					<?php endif; ?>
-					<p><a href="?">View all posters</a></p>
 				</div>
 			<?php else: ?>
 				<div class="gallery">
@@ -2080,961 +2247,1841 @@
 		    </form>
 		</div>
 	</div>
-    <script>
-		document.addEventListener('DOMContentLoaded', function() {
-			// Check authentication status
-			const isLoggedIn = <?php echo isLoggedIn() ? 'true' : 'false'; ?>;
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Check authentication status
+    const isLoggedIn = <?php echo isLoggedIn() ? 'true' : 'false'; ?>;
+    
+    // =========== MODAL FUNCTIONALITY ===========
+    
+    // Modal elements
+    const loginModal = document.getElementById('loginModal');
+    const uploadModal = document.getElementById('uploadModal');
+    const deleteModal = document.getElementById('deleteModal');
+    const renameModal = document.getElementById('renameModal');
+    const moveModal = document.getElementById('moveModal');
+    const plexImportModal = document.getElementById('plexImportModal');
+    const plexErrorModal = document.getElementById('plexErrorModal');
+    
+    // Button elements
+    const showLoginButton = document.getElementById('showLoginModal');
+    const showUploadButton = document.getElementById('showUploadModal');
+    const showPlexImportButton = document.getElementById('showPlexImportModal');
+    
+    // Close buttons
+    const closeLoginButton = loginModal?.querySelector('.modal-close-btn');
+    const closeUploadButton = uploadModal?.querySelector('.modal-close-btn');
+    const closeDeleteButton = deleteModal?.querySelector('.modal-close-btn');
+    const closeRenameButton = renameModal?.querySelector('.modal-close-btn');
+    const closeMoveButton = moveModal?.querySelector('.modal-close-btn');
+    const closePlexImportButton = plexImportModal?.querySelector('.modal-close-btn');
+    const closeErrorModalButton = plexErrorModal?.querySelector('.modal-close-btn');
+    
+    // Form elements
+    const loginForm = document.querySelector('.login-form');
+    const deleteForm = document.getElementById('deleteForm');
+    const renameForm = document.getElementById('renameForm');
+    const moveForm = document.getElementById('moveForm');
+    
+    // Input elements
+    const deleteFilenameInput = document.getElementById('deleteFilename');
+    const deleteDirectoryInput = document.getElementById('deleteDirectory');
+    const oldFilenameInput = document.getElementById('oldFilename');
+    const renameDirectoryInput = document.getElementById('renameDirectory');
+    const newFilenameInput = document.getElementById('newFilename');
+    const moveFilenameInput = document.getElementById('moveFilename');
+    const moveSourceDirectoryInput = document.getElementById('moveSourceDirectory');
+    const moveTargetDirectorySelect = document.getElementById('moveTargetDirectory');
+    
+    // Error elements
+    const loginError = document.querySelector('.login-error');
+    const renameError = document.querySelector('.rename-error');
+    
+    // Notification elements
+    const copyNotification = document.getElementById('copyNotification');
+
+
+  // For regular close buttons
+  const closeButtons = document.querySelectorAll('.plex-import-modal-close, #closeImportModal, .close-button');
+  closeButtons.forEach(button => {
+    button.addEventListener('click', function() {
+      setTimeout(function() {
+        window.location.reload();
+      }, 300);
+    });
+  });
+  
+  // For modals with custom events, you may need to use a MutationObserver
+  // to detect when the modal is removed from the DOM or gets a 'hidden' class
+  const modalElement = document.getElementById('plexImportModal');
+  if (modalElement) {
+    const observer = new MutationObserver(function(mutations) {
+      mutations.forEach(function(mutation) {
+        if (mutation.type === 'attributes' && 
+            (mutation.attributeName === 'class' || mutation.attributeName === 'style')) {
+          // Check if modal is now hidden
+          const isHidden = modalElement.classList.contains('hidden') || 
+                          modalElement.style.display === 'none' ||
+                          modalElement.classList.contains('d-none');
+          if (isHidden) {
+            setTimeout(function() {
+              window.location.reload();
+            }, 300);
+            observer.disconnect();
+          }
+        }
+      });
+    });
+    
+    observer.observe(modalElement, { attributes: true });
+  }
+  
+    // Generic modal functions
+    function showModal(modal) {
+        if (modal) {
+            modal.style.display = 'block';
+            modal.offsetHeight; // Force reflow
+            setTimeout(() => {
+                modal.classList.add('show');
+            }, 10);
+        }
+    }
+
+    function hideModal(modal, form = null) {
+        if (modal) {
+            modal.classList.remove('show');
+            setTimeout(() => {
+                modal.style.display = 'none';
+                if (form) form.reset();
+            }, 300);
+        }
+    }
+    
+    // =========== LOGIN MODAL ===========
+    if (showLoginButton && loginModal) {
+		function showLoginModal() {
+			showModal(loginModal);
+			if (loginError) loginError.style.display = 'none';
 			
-			// Modal elements
-			const uploadModal = document.getElementById('uploadModal');
-			const showUploadButton = document.getElementById('showUploadModal');
-			const closeUploadButton = uploadModal?.querySelector('.modal-close-btn');
-			const uploadTabs = document.querySelectorAll('.upload-tab-btn');
-			const uploadForms = document.querySelectorAll('.upload-form');
-			const deleteModal = document.getElementById('deleteModal');
-			const renameModal = document.getElementById('renameModal');
-			const moveModal = document.getElementById('moveModal');
-			
-			// Form elements
-			const deleteForm = document.getElementById('deleteForm');
-			const renameForm = document.getElementById('renameForm');
-			const moveForm = document.getElementById('moveForm');
-			
-			// Input elements
-			const deleteFilenameInput = document.getElementById('deleteFilename');
-			const deleteDirectoryInput = document.getElementById('deleteDirectory');
-			const oldFilenameInput = document.getElementById('oldFilename');
-			const renameDirectoryInput = document.getElementById('renameDirectory');
-			const newFilenameInput = document.getElementById('newFilename');
-			const moveFilenameInput = document.getElementById('moveFilename');
-			const moveSourceDirectoryInput = document.getElementById('moveSourceDirectory');
-			const moveTargetDirectorySelect = document.getElementById('moveTargetDirectory');
-			
-			// Notification elements
-			const copyNotification = document.getElementById('copyNotification');
-
-			// Login Modal elements
-			const loginModal = document.getElementById('loginModal');
-			const loginForm = document.querySelector('.login-form');
-			const loginError = document.querySelector('.login-error');
-			const showLoginButton = document.getElementById('showLoginModal');
-			const closeLoginButton = loginModal?.querySelector('.modal-close-btn');
-
-			// File input handling
-			const fileInput = document.getElementById('fileInput');
-			if (fileInput) {
-				fileInput.addEventListener('change', function(e) {
-					const fileName = e.target.files[0]?.name || 'No file chosen';
-					const fileNameElement = this.parentElement.querySelector('.file-name');
-					if (fileNameElement) {
-						fileNameElement.textContent = fileName;
-					}
-				});
-			}
-
-			// Modal Functions
-			function showModal(modal) {
-				if (modal) {
-					modal.style.display = 'block';
-					modal.offsetHeight; // Force reflow
-					setTimeout(() => {
-						modal.classList.add('show');
-					}, 10);
-				}
-			}
-
-			function hideModal(modal, form = null) {
-				if (modal) {
-					modal.classList.remove('show');
-					setTimeout(() => {
-						modal.style.display = 'none';
-						if (form) form.reset();
-					}, 300);
-				}
-			}
-
-			// Login Modal Functions
-			if (showLoginButton && loginModal) {
-				function showLoginModal() {
-					showModal(loginModal);
-					loginError.style.display = 'none';
-				}
-
-				function hideLoginModal() {
-					hideModal(loginModal, loginForm);
-					loginError.style.display = 'none';
-				}
-
-				showLoginButton.addEventListener('click', showLoginModal);
-				closeLoginButton?.addEventListener('click', hideLoginModal);
-				
-				loginModal.addEventListener('click', (e) => {
-					if (e.target === loginModal) hideLoginModal();
-				});
-			}
-
-			// Upload Modal Functions
-			if (showUploadButton && uploadModal) {
-				function showUploadModal() {
-					showModal(uploadModal);
-				}
-
-				function hideUploadModal() {
-					hideModal(uploadModal);
-				}
-
-				showUploadButton.addEventListener('click', showUploadModal);
-				closeUploadButton?.addEventListener('click', hideUploadModal);
-				
-				uploadModal.addEventListener('click', (e) => {
-					if (e.target === uploadModal) hideUploadModal();
-				});
-
-				// Upload tabs functionality
-				uploadTabs.forEach(button => {
-					button.addEventListener('click', () => {
-						const tabName = button.getAttribute('data-tab');
-						
-						// Update active tab button
-						uploadTabs.forEach(btn => btn.classList.remove('active'));
-						button.classList.add('active');
-						
-						// Show active form
-						uploadForms.forEach(form => {
-						    if (form.id === tabName + 'UploadForm') {
-						        form.classList.add('active');
-						    } else {
-						        form.classList.remove('active');
-						    }
-						});
-					});
-				});
-			}
-
-			// Login Form Handler
-			if (loginForm) {
-				loginForm.addEventListener('submit', async function(e) {
-					e.preventDefault();
-					const formData = new FormData(loginForm);
-					
-					try {
-						const response = await fetch(window.location.href, {
-						    method: 'POST',
-						    body: formData,
-						    headers: {
-						        'X-Requested-With': 'XMLHttpRequest'
-						    }
-						});
-						
-						const data = await response.json();
-						
-						if (data.success) {
-						    window.location.reload();
-						} else {
-						    loginError.textContent = data.error;
-						    loginError.style.display = 'block';
-						}
-					} catch (error) {
-						console.error('Login error:', error);
-						loginError.textContent = 'An error occurred during login';
-						loginError.style.display = 'block';
-					}
-				});
-			}
-			
-			// Form Handlers
-			if (deleteForm) {
-				deleteForm.addEventListener('submit', async function(e) {
-					e.preventDefault();
-					const formData = new FormData(deleteForm);
-					
-					try {
-						const response = await fetch(window.location.href, {
-						    method: 'POST',
-						    body: formData
-						});
-						
-						const data = await response.json();
-						
-						if (data.success) {
-						    hideModal(deleteModal);
-						    window.location.reload();
-						} else {
-						    alert(data.error || 'Failed to delete file');
-						}
-					} catch (error) {
-						console.error('Delete error:', error);
-						alert('An error occurred while deleting the file');
-					}
-				});
-			}
-
-			if (renameForm) {
-				const renameError = document.querySelector('.rename-error');
-				
-				function showRenameError(message) {
-					renameError.textContent = message;
-					renameError.style.display = 'block';
-				}
-				
-				function hideRenameError() {
-					renameError.style.display = 'none';
-					renameError.textContent = '';
-				}
-				
-				function validateFilename(filename) {
-					// Check for periods in the filename (excluding extension)
-					const periodCount = filename.split('.').length - 1;
-					if (periodCount > 0) {
-						showRenameError('Filename cannot contain periods');
-						return false;
-					}
-					
-					// Check for slashes and backslashes in the filename
-					if (filename.includes('/') || filename.includes('\\')) {
-						showRenameError('Filename cannot contain slashes');
-						return false;
-					}
-					return true;
-				}
-				
-				renameForm.addEventListener('submit', async function(e) {
-					e.preventDefault();
-					hideRenameError();
-					
-					const newFilename = document.getElementById('newFilename').value;
-					if (!validateFilename(newFilename)) {
-						return;
-					}
-					
-					const formData = new FormData(renameForm);
-					
-					try {
-						const response = await fetch(window.location.href, {
-						    method: 'POST',
-						    body: formData
-						});
-						
-						const data = await response.json();
-						
-						if (data.success) {
-						    hideModal(renameModal);
-						    window.location.reload();
-						} else {
-						    showRenameError(data.error || 'Failed to rename file');
-						}
-					} catch (error) {
-						console.error('Rename error:', error);
-						showRenameError('An error occurred while renaming the file');
-					}
-				});
-
-				// When closing the modal, clear any error messages
-				document.getElementById('cancelRename')?.addEventListener('click', () => {
-					hideRenameError();
-					hideModal(renameModal, renameForm);
-				});
-				
-				renameModal?.querySelector('.modal-close-btn')?.addEventListener('click', () => {
-					hideRenameError();
-					hideModal(renameModal, renameForm);
-				});
-				
-				// Real-time validation as user types
-				document.getElementById('newFilename').addEventListener('input', function(e) {
-					const filename = e.target.value;
-					validateFilename(filename);
-				});
-			}
-
-			if (moveForm) {
-				moveForm.addEventListener('submit', async function(e) {
-					e.preventDefault();
-					const formData = new FormData(moveForm);
-					
-					try {
-						const response = await fetch(window.location.href, {
-						    method: 'POST',
-						    body: formData
-						});
-						
-						const data = await response.json();
-						
-						if (data.success) {
-						    hideModal(moveModal);
-						    window.location.reload();
-						} else {
-						    alert(data.error || 'Failed to move file');
-						}
-					} catch (error) {
-						console.error('Move error:', error);
-						alert('An error occurred while moving the file');
-					}
-				});
-			}
-
-			// Event Handler Functions
-			function deleteHandler(e) {
-				e.preventDefault();
-				const filename = this.getAttribute('data-filename');
-				const dirname = this.getAttribute('data-dirname');
-				deleteFilenameInput.value = filename;
-				deleteDirectoryInput.value = dirname;
-				showModal(deleteModal);
-			}
-
-			function renameHandler(e) {
-				e.preventDefault();
-				const filename = this.getAttribute('data-filename');
-				const dirname = this.getAttribute('data-dirname');
-				const basename = this.getAttribute('data-basename');
-				oldFilenameInput.value = filename;
-				renameDirectoryInput.value = dirname;
-				newFilenameInput.value = basename;
-				newFilenameInput.select();
-				showModal(renameModal);
-			}
-
-			function moveHandler(e) {
-				e.preventDefault();
-				const filename = this.getAttribute('data-filename');
-				const dirname = this.getAttribute('data-dirname');
-				moveFilenameInput.value = filename;
-				moveSourceDirectoryInput.value = dirname;
-				
-				// Remove the current directory from target options
-				Array.from(moveTargetDirectorySelect.options).forEach(option => {
-					option.disabled = option.value === dirname;
-				});
-				
-				// Select the first enabled option
-				const firstEnabledOption = Array.from(moveTargetDirectorySelect.options).find(option => !option.disabled);
-				if (firstEnabledOption) {
-					firstEnabledOption.selected = true;
-				}
-				
-				showModal(moveModal);
-			}
-
-			function copyUrlHandler() {
-				// Get the URL and encode spaces
-				const url = this.getAttribute('data-url');
-				const encodedUrl = url.replace(/ /g, '%20');
-				
-				try {
-					navigator.clipboard.writeText(encodedUrl).then(() => {
-						showNotification();
-					});
-				} catch (err) {
-					console.error('Failed to copy: ', err);
-					
-					// Fallback for browsers that don't support clipboard API
-					const textarea = document.createElement('textarea');
-					textarea.value = encodedUrl;
-					textarea.style.position = 'fixed';
-					document.body.appendChild(textarea);
-					textarea.select();
-					
-					try {
-						document.execCommand('copy');
-						showNotification();
-					} catch (e) {
-						console.error('Fallback copy failed:', e);
-						alert('Copy failed. Please select and copy the URL manually.');
-					}
-					
-					document.body.removeChild(textarea);
-				}
-			}
-
-			// Update file upload form handler
-			if (document.getElementById('fileUploadForm')) {
-				document.getElementById('fileUploadForm').addEventListener('submit', async function(e) {
-					e.preventDefault();
-					hideUploadError();
-					
-					const formData = new FormData(this);
-					const fileInput = this.querySelector('input[type="file"]');
-					
-					// Validate file type
-					if (fileInput.files.length > 0) {
-						const file = fileInput.files[0];
-						const ext = file.name.split('.').pop().toLowerCase();
-						const allowedExtensions = <?php echo json_encode($config['allowedExtensions']); ?>;
-						
-						if (!allowedExtensions.includes(ext)) {
-						    showUploadError('Invalid file type. Allowed types: ' + allowedExtensions.join(', '));
-						    return;
-						}
-					}
-					
-					try {
-						const response = await fetch(window.location.href, {
-						    method: 'POST',
-						    body: formData
-						});
-						
-						const data = await response.json();
-						
-						if (data.success) {
-						    // Only hide modal and reload on success
-						    hideModal(uploadModal);
-						    window.location.reload();
-						} else {
-						    // Keep modal open and show error
-						    showUploadError(data.error || 'Upload failed');
-						    
-						    // Reset file input on failure while keeping modal open
-						    fileInput.value = '';
-						    const fileNameElement = fileInput.parentElement.querySelector('.file-name');
-						    if (fileNameElement) {
-						        fileNameElement.textContent = '';
-						    }
-						}
-					} catch (error) {
-						console.error('Upload error:', error);
-						showUploadError('An error occurred during upload');
-						
-						// Reset file input on error while keeping modal open
-						fileInput.value = '';
-						const fileNameElement = fileInput.parentElement.querySelector('.file-name');
-						if (fileNameElement) {
-						    fileNameElement.textContent = '';
-						}
-					}
-				});
-			}
-
-			// Update URL upload form handler
-			if (document.getElementById('urlUploadForm')) {
-				document.getElementById('urlUploadForm').addEventListener('submit', async function(e) {
-					e.preventDefault();
-					hideUploadError();
-					
-					const formData = new FormData(this);
-					const imageUrl = formData.get('image_url');
-					const urlInput = this.querySelector('input[name="image_url"]');
-					
-					// Basic URL validation
-					try {
-						const url = new URL(imageUrl);
-						const ext = url.pathname.split('.').pop().toLowerCase();
-						const allowedExtensions = <?php echo json_encode($config['allowedExtensions']); ?>;
-						
-						if (!allowedExtensions.includes(ext)) {
-						    showUploadError('Invalid file type. Allowed types: ' + allowedExtensions.join(', '));
-						    return;
-						}
-					} catch (error) {
-						showUploadError('Invalid URL format');
-						return;
-					}
-					
-					try {
-						const response = await fetch(window.location.href, {
-						    method: 'POST',
-						    body: formData
-						});
-						
-						const data = await response.json();
-						
-						if (data.success) {
-						    // Only hide modal and reload on success
-						    hideModal(uploadModal);
-						    window.location.reload();
-						} else {
-						    // Keep modal open and show error
-						    showUploadError(data.error || 'Upload failed');
-						    
-						    // Clear URL input on failure while keeping modal open
-						    urlInput.value = '';
-						}
-					} catch (error) {
-						console.error('Upload error:', error);
-						showUploadError('An error occurred during upload');
-						
-						// Clear URL input on error while keeping modal open
-						urlInput.value = '';
-					}
-				});
-			}
-			
-			function initializeTruncation() {
-				const captions = document.querySelectorAll('.gallery-caption');
-				
-				captions.forEach(caption => {
-					const text = caption.textContent.trim();
-					caption.textContent = text;
-					
-					const containerWidth = caption.clientWidth;
-					
-					const measurer = document.createElement('div');
-					measurer.style.visibility = 'hidden';
-					measurer.style.position = 'absolute';
-					measurer.style.whiteSpace = 'nowrap';
-					measurer.style.fontSize = window.getComputedStyle(caption).fontSize;
-					measurer.style.fontFamily = window.getComputedStyle(caption).fontFamily;
-					measurer.style.fontWeight = window.getComputedStyle(caption).fontWeight;
-					measurer.style.padding = window.getComputedStyle(caption).padding;
-					measurer.textContent = text;
-					document.body.appendChild(measurer);
-
-					const textWidth = measurer.offsetWidth;
-					document.body.removeChild(measurer);
-
-					if (textWidth > containerWidth * 0.9) {
-						let truncated = text;
-						let currentWidth = textWidth;
-						
-						let start = 0;
-						let end = text.length;
-						
-						while (start < end) {
-							const mid = Math.floor((start + end + 1) / 2);
-							const testText = text.slice(0, mid) + '...';
-							measurer.textContent = testText;
-							document.body.appendChild(measurer);
-							currentWidth = measurer.offsetWidth;
-							document.body.removeChild(measurer);
-							
-							if (currentWidth <= containerWidth * 0.9) {
-								start = mid;
-							} else {
-								end = mid - 1;
-							}
-						}
-						
-						truncated = text.slice(0, start) + '...';
-						caption.textContent = truncated;
-						caption.title = text; // Use native title for tooltip
-						caption.style.cursor = 'help';
-					}
-				});
-			}
-
-			// Add this to both your DOMContentLoaded and after image loading
-			window.addEventListener('DOMContentLoaded', () => {
-				initializeTruncation();
-			});
-
-			// Also call it after each image loads
-			document.querySelectorAll('.gallery-image').forEach(img => {
-				img.addEventListener('load', () => {
-					initializeTruncation();
-				});
-			});
-
-			// Debounced resize handler
-			window.addEventListener('resize', debounce(initializeTruncation, 250));
-
-			// Initialize all button handlers
-			function initializeButtons() {
-				// Copy buttons
-				document.querySelectorAll('.copy-url-btn').forEach(button => {
-					button.removeEventListener('click', copyUrlHandler);
-					button.addEventListener('click', copyUrlHandler);
-				});
-
-				// Delete buttons
-				document.querySelectorAll('.delete-btn').forEach(button => {
-					button.removeEventListener('click', deleteHandler);
-					button.addEventListener('click', deleteHandler);
-				});
-
-				// Rename buttons
-				document.querySelectorAll('.rename-btn').forEach(button => {
-					button.removeEventListener('click', renameHandler);
-					button.addEventListener('click', renameHandler);
-				});
-
-				// Move buttons
-				document.querySelectorAll('.move-btn').forEach(button => {
-					button.removeEventListener('click', moveHandler);
-					button.addEventListener('click', moveHandler);
-				});
-
-				// Add move button to overlay actions if it doesn't exist
-				document.querySelectorAll('.image-overlay-actions').forEach(actions => {
-					if (!actions.querySelector('.move-btn')) {
-						const moveBtn = document.createElement('button');
-						moveBtn.className = 'overlay-action-button move-btn';
-						moveBtn.setAttribute('data-filename', actions.querySelector('.delete-btn').getAttribute('data-filename'));
-						moveBtn.setAttribute('data-dirname', actions.querySelector('.delete-btn').getAttribute('data-dirname'));
-						moveBtn.innerHTML = `
-							<svg class="image-action-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-							    <path d="M5 9l7-7 7 7"/>
-							    <path d="M19 15v4a2 2 0 01-2 2H7a2 2 0 01-2-2v-4"/>
-							    <line x1="12" y1="3" x2="12" y2="15"/>
-							</svg>
-							Move
-						`;
-						actions.insertBefore(moveBtn, actions.querySelector('.rename-btn'));
-					}
-				});
-			}
-
-			// Notification function
-			function showNotification() {
-				copyNotification.style.display = 'block';
-				copyNotification.classList.add('show');
-				
-				setTimeout(() => {
-					copyNotification.classList.remove('show');
-					setTimeout(() => {
-						copyNotification.style.display = 'none';
-					}, 300);
-				}, 2000);
-			}
-
-			// Search functionality
-			function debounce(func, wait) {
-				let timeout;
-				return function() {
-					const context = this, args = arguments;
-					clearTimeout(timeout);
-					timeout = setTimeout(function() {
-						func.apply(context, args);
-					}, wait);
-				};
-			}
-
-			// Get the search form and input
-			const searchForm = document.querySelector('.search-form');
-			const searchInput = document.querySelector('.search-input');
-
-			// Set autocomplete off to prevent browser behavior
-			if (searchInput) {
-				searchInput.setAttribute('autocomplete', 'off');
-			}
-
-			// Handle form submission (search button click or Enter key)
-			if (searchForm) {
-				searchForm.addEventListener('submit', function(e) {
-					e.preventDefault();
-					
-					const searchValue = searchForm.querySelector('.search-input').value;
-					const currentUrl = new URL(window.location.href);
-					
-					if (searchValue) {
-						currentUrl.searchParams.set('search', searchValue);
-					} else {
-						currentUrl.searchParams.delete('search');
-					}
-					
-					// Maintain directory filter if exists
-					const currentDirectory = currentUrl.searchParams.get('directory');
-					if (currentDirectory) {
-						currentUrl.searchParams.set('directory', currentDirectory);
-					}
-					
-					// Update URL
-					window.history.pushState({}, '', currentUrl.toString());
-					
-					// Perform search
-					fetch(currentUrl.toString())
-						.then(response => response.text())
-						.then(html => {
-							const parser = new DOMParser();
-							const newDoc = parser.parseFromString(html, 'text/html');
-							
-							// Update stats
-							document.querySelector('.gallery-stats').innerHTML = 
-								newDoc.querySelector('.gallery-stats').innerHTML;
-							
-							// Update pagination
-							const paginationContainer = document.querySelector('.pagination');
-							const newPagination = newDoc.querySelector('.pagination');
-							
-							if (paginationContainer) {
-								if (newPagination) {
-									paginationContainer.style.display = 'flex';
-									paginationContainer.innerHTML = newPagination.innerHTML;
-								} else {
-									paginationContainer.style.display = 'none';
-								}
-							}
-							
-							// Get the gallery container
-							const galleryContainer = document.querySelector('.gallery');
-							
-							// Check if there are results
-							const newGallery = newDoc.querySelector('.gallery');
-							const noResults = newDoc.querySelector('.no-results');
-							
-							if (newGallery) {
-								// Show gallery with results
-								if (galleryContainer) {
-									galleryContainer.style.display = 'grid';
-									galleryContainer.innerHTML = newGallery.innerHTML;
-								}
-								// Remove any existing no-results message
-								const existingNoResults = document.querySelector('.no-results');
-								if (existingNoResults) {
-									existingNoResults.remove();
-								}
-							} else if (noResults) {
-								// Hide gallery
-								if (galleryContainer) {
-									galleryContainer.style.display = 'none';
-								}
-								// Remove any existing no-results message
-								const existingNoResults = document.querySelector('.no-results');
-								if (existingNoResults) {
-									existingNoResults.remove();
-								}
-								// Insert new no-results message after gallery stats
-								const galleryStats = document.querySelector('.gallery-stats');
-								galleryStats.insertAdjacentHTML('afterend', noResults.outerHTML);
-							}
-							
-							// Blur the search input to hide keyboard on mobile
-							if (searchInput) {
-								searchInput.blur();
-							}
-							
-							// Reinitialize observers and buttons
-							initializeGalleryFeatures();
-							initializeButtons();
-						});
-				});
-			}
-
-			// Handle browser back/forward
-			window.addEventListener('popstate', function() {
-				location.reload();
-			});
-			
-			const uploadError = document.querySelector('.upload-error');
-			
-			function showUploadError(message) {
-				if (uploadError) {
-					uploadError.textContent = message;
-					uploadError.style.display = 'block';
-				}
-			}
-			
-			function hideUploadError() {
-				if (uploadError) {
-					uploadError.style.display = 'none';
-					uploadError.textContent = '';
-				}
-			}
-			
-			let isScrolling = false;
-			let scrollTimeout;
-			let overlayActivationTime = 0;
-			const OVERLAY_ACTIVATION_DELAY = 100; // Time in ms to wait before allowing button interactions
-
-			// Function to handle scroll events
-			function handleScroll() {
-				isScrolling = true;
-				
-				// Hide all overlay actions while scrolling
-				document.querySelectorAll('.gallery-item').forEach(item => {
-					item.classList.remove('touch-active');
-				});
-				
-				// Clear the existing timeout
-				clearTimeout(scrollTimeout);
-				
-				// Set a new timeout to mark scrolling as finished
-				scrollTimeout = setTimeout(() => {
-					isScrolling = false;
-				}, 100);
-			}
-
-			// Lazy loading with Intersection Observer
-			const observerOptions = {
-				root: null,
-				rootMargin: '50px',
-				threshold: 0.1
-			};
-			
-			const handleIntersection = (entries, observer) => {
-				entries.forEach(entry => {
-					if (entry.isIntersecting) {
-						const img = entry.target;
-						const placeholder = img.previousElementSibling;
-						
-						if (!img.classList.contains('loaded')) {
-							img.src = img.dataset.src;
-							
-							img.onload = () => {
-							    img.classList.add('loaded');
-							    placeholder.classList.add('hidden');
-							};
-							
-							img.onerror = () => {
-							    placeholder.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`;
-							};
-						}
-						
-						observer.unobserve(img);
-					}
-				});
-			};
-			
-			const observer = new IntersectionObserver(handleIntersection, observerOptions);
-			
-			// Initialize gallery features
-			function initializeGalleryFeatures() {
-				// Initialize lazy loading
-				document.querySelectorAll('.gallery-image').forEach(img => {
-					observer.observe(img);
-				});
-
-				// Add intercepting event listener for buttons
-				document.querySelectorAll('.overlay-action-button').forEach(button => {
-					button.addEventListener('touchstart', function(e) {
-						// If overlay was just activated, prevent button interaction
-						if (Date.now() - overlayActivationTime < OVERLAY_ACTIVATION_DELAY) {
-							e.preventDefault();
-							e.stopPropagation();
-						}
-					}, { capture: true }); // Use capture phase to intercept before regular handlers
-				});
-
-				// Handle touch interactions for gallery items
-				document.querySelectorAll('.gallery-item').forEach(item => {
-					let touchStartY = 0;
-					let touchStartX = 0;
-					let touchTimeStart = 0;
-
-					item.addEventListener('touchstart', function(e) {
-						if (isScrolling) return;
-						
-						if (!this.classList.contains('touch-active')) {
-							touchStartY = e.touches[0].clientY;
-							touchStartX = e.touches[0].clientX;
-							touchTimeStart = Date.now();
-						}
-					}, { passive: true });
-
-					item.addEventListener('touchend', function(e) {
-						if (isScrolling) return;
-						
-						// Handle initial tap to show overlay
-						if (!this.classList.contains('touch-active')) {
-							const touchEndY = e.changedTouches[0].clientY;
-							const touchEndX = e.changedTouches[0].clientX;
-							const touchTime = Date.now() - touchTimeStart;
-							
-							const dy = Math.abs(touchEndY - touchStartY);
-							const dx = Math.abs(touchEndX - touchStartX);
-							
-							if (touchTime < 300 && dy < 10 && dx < 10) {
-								e.preventDefault();
-								e.stopPropagation();
-								
-								// Remove active class from all other items
-								document.querySelectorAll('.gallery-item').forEach(otherItem => {
-								    if (otherItem !== this) {
-								        otherItem.classList.remove('touch-active');
-								    }
-								});
-								
-								// Show this overlay and record the time
-								this.classList.add('touch-active');
-								overlayActivationTime = Date.now();
-							}
-						}
-					});
-				});
-
-				// Close active overlay when touching outside
-				document.addEventListener('touchstart', function(e) {
-					if (!isScrolling && 
-						!e.target.closest('.gallery-item') && 
-						!e.target.closest('.overlay-action-button')) {
-						document.querySelectorAll('.gallery-item').forEach(item => {
-							item.classList.remove('touch-active');
-						});
-					}
-				}, { passive: true });
-			}
-
-			// Add scroll event listener
-			window.addEventListener('scroll', handleScroll, { passive: true });
-
-			// Clear error when switching tabs
-			document.querySelectorAll('.upload-tab-btn').forEach(button => {
-				button.addEventListener('click', () => {
-					hideUploadError();
-				});
-			});
-
-			// Clear error when closing modal
-			document.querySelector('#uploadModal .modal-close-btn')?.addEventListener('click', () => {
-				hideUploadError();
-			});
-
-			// Handle escape key for modals
-			document.addEventListener('keydown', (e) => {
-				if (e.key === 'Escape') {
-					if (uploadModal?.classList.contains('show')) hideUploadModal();
-					if (deleteModal?.classList.contains('show')) hideModal(deleteModal, deleteForm);
-					if (renameModal?.classList.contains('show')) hideModal(renameModal, renameForm);
-					if (moveModal?.classList.contains('show')) hideModal(moveModal, moveForm);
-					if (loginModal?.classList.contains('show')) hideLoginModal();
-				}
-			});
-
-		// Fix for delete modal buttons
-		if (deleteModal) {
-			// Fix close button
-			const deleteCloseBtn = deleteModal.querySelector('.modal-close-btn');
-			if (deleteCloseBtn) {
-				deleteCloseBtn.addEventListener('click', () => {
-				    hideModal(deleteModal, deleteForm);
-				});
-			}
-
-			// Fix cancel button
-			const cancelDeleteBtn = document.getElementById('cancelDelete');
-			if (cancelDeleteBtn) {
-				cancelDeleteBtn.addEventListener('click', () => {
-				    hideModal(deleteModal, deleteForm);
-				});
-			}
-
-			// Close when clicking outside the modal
-			deleteModal.addEventListener('click', (e) => {
-				if (e.target === deleteModal) {
-				    hideModal(deleteModal, deleteForm);
-				}
-			});
+			// Focus on username input
+			setTimeout(() => {
+				const usernameInput = loginModal.querySelector('input[name="username"]');
+				if (usernameInput) usernameInput.focus();
+			}, 100); // Short delay to ensure modal is fully visible
 		}
 
-		// Fix for move modal buttons
-		if (moveModal) {
-			// Fix close button
-			const moveCloseBtn = moveModal.querySelector('.modal-close-btn');
-			if (moveCloseBtn) {
-				moveCloseBtn.addEventListener('click', () => {
-				    hideModal(moveModal, moveForm);
-				});
-			}
+        function hideLoginModal() {
+            hideModal(loginModal, loginForm);
+            if (loginError) loginError.style.display = 'none';
+        }
 
-			// Fix cancel button
-			const cancelMoveBtn = document.getElementById('cancelMove');
-			if (cancelMoveBtn) {
-				cancelMoveBtn.addEventListener('click', () => {
-				    hideModal(moveModal, moveForm);
-				});
-			}
+        showLoginButton.addEventListener('click', showLoginModal);
+        closeLoginButton?.addEventListener('click', hideLoginModal);
+        
+        loginModal.addEventListener('click', (e) => {
+            if (e.target === loginModal) hideLoginModal();
+        });
+        
+        // Login form submission handling
+        if (loginForm) {
+            loginForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const formData = new FormData(loginForm);
+                
+                try {
+                    const response = await fetch(window.location.href, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        window.location.reload();
+                    } else {
+                        loginError.textContent = data.error;
+                        loginError.style.display = 'block';
+                    }
+                } catch (error) {
+                    console.error('Login error:', error);
+                    loginError.textContent = 'An error occurred during login';
+                    loginError.style.display = 'block';
+                }
+            });
+        }
+    }
+    
+    // =========== UPLOAD MODAL ===========
+    if (showUploadButton && uploadModal && isLoggedIn) {
+        function showUploadModal() {
+            showModal(uploadModal);
+        }
 
-			// Close when clicking outside the modal
-			moveModal.addEventListener('click', (e) => {
-				if (e.target === moveModal) {
-				    hideModal(moveModal, moveForm);
-				}
+        function hideUploadModal() {
+            hideModal(uploadModal);
+        }
+
+        showUploadButton.addEventListener('click', showUploadModal);
+        closeUploadButton?.addEventListener('click', hideUploadModal);
+        
+        uploadModal.addEventListener('click', (e) => {
+            if (e.target === uploadModal) hideUploadModal();
+        });
+        
+        // Upload tabs functionality
+        const uploadTabs = document.querySelectorAll('.upload-tab-btn');
+        const uploadForms = document.querySelectorAll('.upload-form');
+        
+        uploadTabs.forEach(button => {
+            button.addEventListener('click', () => {
+                const tabName = button.getAttribute('data-tab');
+                
+                // Update active tab button
+                uploadTabs.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                
+                // Show active form
+                uploadForms.forEach(form => {
+                    if (form.id === tabName + 'UploadForm') {
+                        form.classList.add('active');
+                    } else {
+                        form.classList.remove('active');
+                    }
+                });
+                
+                // Clear any errors when switching tabs
+                hideUploadError();
+            });
+        });
+        
+        // Update file upload form handler
+        if (document.getElementById('fileUploadForm')) {
+            document.getElementById('fileUploadForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                hideUploadError();
+                
+                const formData = new FormData(this);
+                const fileInput = this.querySelector('input[type="file"]');
+                
+                // Validate file type
+                if (fileInput.files.length > 0) {
+                    const file = fileInput.files[0];
+                    const ext = file.name.split('.').pop().toLowerCase();
+                    const allowedExtensions = <?php echo json_encode($config['allowedExtensions']); ?>;
+                    
+                    if (!allowedExtensions.includes(ext)) {
+                        showUploadError('Invalid file type. Allowed types: ' + allowedExtensions.join(', '));
+                        return;
+                    }
+                }
+                
+                try {
+                    const response = await fetch(window.location.href, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        // Only hide modal and reload on success
+                        hideModal(uploadModal);
+                        window.location.reload();
+                    } else {
+                        // Keep modal open and show error
+                        showUploadError(data.error || 'Upload failed');
+                        
+                        // Reset file input on failure while keeping modal open
+                        fileInput.value = '';
+                        const fileNameElement = fileInput.parentElement.querySelector('.file-name');
+                        if (fileNameElement) {
+                            fileNameElement.textContent = '';
+                        }
+                    }
+                } catch (error) {
+                    console.error('Upload error:', error);
+                    showUploadError('An error occurred during upload');
+                    
+                    // Reset file input on error while keeping modal open
+                    fileInput.value = '';
+                    const fileNameElement = fileInput.parentElement.querySelector('.file-name');
+                    if (fileNameElement) {
+                        fileNameElement.textContent = '';
+                    }
+                }
+            });
+        }
+
+        // Update URL upload form handler
+        if (document.getElementById('urlUploadForm')) {
+            document.getElementById('urlUploadForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                hideUploadError();
+                
+                const formData = new FormData(this);
+                const imageUrl = formData.get('image_url');
+                const urlInput = this.querySelector('input[name="image_url"]');
+                
+                // Basic URL validation
+                try {
+                    const url = new URL(imageUrl);
+                    const ext = url.pathname.split('.').pop().toLowerCase();
+                    const allowedExtensions = <?php echo json_encode($config['allowedExtensions']); ?>;
+                    
+                    if (!allowedExtensions.includes(ext)) {
+                        showUploadError('Invalid file type. Allowed types: ' + allowedExtensions.join(', '));
+                        return;
+                    }
+                } catch (error) {
+                    showUploadError('Invalid URL format');
+                    return;
+                }
+                
+                try {
+                    const response = await fetch(window.location.href, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        // Only hide modal and reload on success
+                        hideModal(uploadModal);
+                        window.location.reload();
+                    } else {
+                        // Keep modal open and show error
+                        showUploadError(data.error || 'Upload failed');
+                        
+                        // Clear URL input on failure while keeping modal open
+                        urlInput.value = '';
+                    }
+                } catch (error) {
+                    console.error('Upload error:', error);
+                    showUploadError('An error occurred during upload');
+                    
+                    // Clear URL input on error while keeping modal open
+                    urlInput.value = '';
+                }
+            });
+        }
+    }
+    
+    // =========== PLEX IMPORT MODAL ===========
+    
+    // Only initialize if user is logged in
+    if (isLoggedIn && showPlexImportButton && plexImportModal) {
+        // Plex-specific elements
+        const startPlexImportButton = document.getElementById('startPlexImport');
+        const importTypeSelect = document.getElementById('plexImportType');
+        const librarySelect = document.getElementById('plexLibrary');
+        const showSelect = document.getElementById('plexShow');
+        const targetDirectorySelect = document.getElementById('targetDirectory');
+        const fileHandlingSelect = document.getElementById('fileHandling');
+        
+        // Step containers
+        const importTypeStep = document.getElementById('importTypeStep');
+        const librarySelectionStep = document.getElementById('librarySelectionStep');
+        const showSelectionStep = document.getElementById('showSelectionStep');
+        const targetDirectoryStep = document.getElementById('targetDirectoryStep');
+        const fileHandlingStep = document.getElementById('fileHandlingStep');
+        
+        // Progress and results elements
+        const importProgressContainer = document.getElementById('importProgressContainer');
+        const importProgressBar = document.getElementById('importProgressBar')?.querySelector('div');
+        const importProgressDetails = document.getElementById('importProgressDetails');
+        const importResultsContainer = document.getElementById('importResultsContainer');
+        const importOptionsContainer = document.getElementById('plexImportOptions');
+        
+        // Error handling
+        const importErrorContainer = document.querySelector('.import-error');
+        const plexErrorMessage = document.getElementById('plexErrorMessage');
+        const plexErrorCloseButtons = document.querySelectorAll('.plexErrorClose');
+        
+        // Results elements
+        const closeResultsButton = document.getElementById('closeImportResults');
+        const importErrors = document.getElementById('importErrors');
+        
+        // Connection status
+        const connectionStatus = document.getElementById('plexConnectionStatus');
+        
+        // State variables
+        let plexLibraries = [];
+        let plexShows = [];
+        let importCancelled = false;
+        
+        // Show/hide Plex Import Modal functions
+		function showPlexModal() {
+			showModal(plexImportModal);
+			
+			// Reset the form to a clean state
+			resetPlexImport();
+			
+			// Don't call validateImportOptions() here - it's too early
+			// Don't call loadPlexLibraries() yet - wait for user to select content type
+			
+			// Just test the connection
+			testPlexConnection();
+		}
+
+        function hidePlexModal() {
+            hideModal(plexImportModal);
+            resetPlexImport();
+        }
+        
+        function showErrorModal(message) {
+            plexErrorMessage.textContent = message;
+            showModal(plexErrorModal);
+        }
+        
+        function hideErrorModal() {
+            hideModal(plexErrorModal);
+        }
+        
+        // Reset the import form
+		function resetPlexImport() {
+		// Show the close button again when results are shown
+		const closeButton = plexImportModal.querySelector('.modal-close-btn');
+		if (closeButton) {
+			closeButton.style.display = 'block';
+			
+			// Ensure close button has proper event handler
+			closeButton.addEventListener('click', function() {
+				hideModal(plexImportModal);
+				// Force a page refresh to ensure a clean state
+				setTimeout(function() {
+				    window.location.reload();
+				}, 300);
 			});
 		}
 			
-			// Initial setup
-			initializeGalleryFeatures();
-			initializeButtons();
+			// Reset form selections
+			importTypeSelect.value = '';
+			librarySelect.innerHTML = '<option value="">Select a content type first...</option>';
+			showSelect.innerHTML = '<option value="">Select a library first...</option>';
+			targetDirectorySelect.value = 'movies';
+			fileHandlingSelect.value = 'overwrite';
+			
+			// Hide all steps except type
+			importTypeStep.style.display = 'block';
+			librarySelectionStep.style.display = 'none';
+			showSelectionStep.style.display = 'none';
+			seasonsOptionsStep.style.display = 'none';
+			targetDirectoryStep.style.display = 'none';
+			fileHandlingStep.style.display = 'none';
+			
+			// Reset containers
+			importProgressContainer.style.display = 'none';
+			importResultsContainer.style.display = 'none';
+			importOptionsContainer.style.display = 'block';
+			
+			// Hide error container instead of just clearing it
+			importErrorContainer.style.display = 'none';
+			importErrorContainer.textContent = '';
+			
+			// Disable start button
+			startPlexImportButton.disabled = true;
+			
+			// Reset progress
+			if (importProgressBar) {
+				importProgressBar.style.width = '0%';
+			}
+			importProgressDetails.textContent = 'Processing 0 of 0 items (0%)';
+			
+			// Reset import cancelled flag
+			importCancelled = false;
+		}
+        
+        // Test Plex connection and display status
+        async function testPlexConnection() {
+            connectionStatus.style.display = 'block';
+            connectionStatus.innerHTML = `
+                <div style="padding: 10px; border-radius: 4px; background: rgba(255, 159, 67, 0.1); border: 1px solid var(--accent-primary);">
+                    <span style="display: inline-block; margin-right: 8px;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                    </span>
+                    Testing connection to Plex server...
+                </div>
+            `;
+            
+            try {
+                const response = await fetch('./include/plex-import.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        'action': 'test_plex_connection'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    connectionStatus.innerHTML = `
+                        <div style="padding: 10px; border-radius: 4px; background: rgba(46, 213, 115, 0.1); border: 1px solid var(--success-color);">
+                            <span style="display: inline-block; margin-right: 8px; color: var(--success-color);">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                </svg>
+                            </span>
+                            Connected to Plex server
+                        </div>
+                    `;
+                    
+                    // Load libraries if connection successful
+                    loadPlexLibraries();
+                } else {
+                    connectionStatus.innerHTML = `
+                        <div style="padding: 10px; border-radius: 4px; background: rgba(239, 68, 68, 0.1); border: 1px solid var(--danger-color);">
+                            <span style="display: inline-block; margin-right: 8px; color: var(--danger-color);">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                </svg>
+                            </span>
+                            Failed to connect to Plex server: ${data.error}
+                        </div>
+                    `;
+                    
+                    // Disable the form if connection failed
+                    startPlexImportButton.disabled = true;
+                }
+            } catch (error) {
+                connectionStatus.innerHTML = `
+                    <div style="padding: 10px; border-radius: 4px; background: rgba(239, 68, 68, 0.1); border: 1px solid var(--danger-color);">
+                        <span style="display: inline-block; margin-right: 8px; color: var(--danger-color);">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="8" x2="12" y2="12"></line>
+                                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                            </svg>
+                        </span>
+                        Error connecting to Plex server: ${error.message}
+                    </div>
+                `;
+                
+                // Disable the form if connection error
+                startPlexImportButton.disabled = true;
+            }
+        }
+        
+		// Updated loadPlexLibraries function to filter libraries based on import type
+		async function loadPlexLibraries() {
+			// Get the currently selected import type
+			const importType = importTypeSelect.value;
+			
+			// If no import type is selected, don't try to load libraries
+			if (!importType) {
+				librarySelect.innerHTML = '<option value="">Select a content type first...</option>';
+				return;
+			}
+			
+			librarySelect.innerHTML = '<option value="">Loading libraries...</option>';
+			
+			try {
+				const response = await fetch('./include/plex-import.php', {
+				    method: 'POST',
+				    headers: {
+				        'Content-Type': 'application/x-www-form-urlencoded',
+				    },
+				    body: new URLSearchParams({
+				        'action': 'get_plex_libraries'
+				    })
+				});
+				
+				const data = await response.json();
+				
+				if (data.success && data.data.length > 0) {
+				    plexLibraries = data.data;
+				    librarySelect.innerHTML = '<option value="">Select library...</option>';
+				    
+				    let matchingLibrariesCount = 0;
+				    
+				    plexLibraries.forEach(library => {
+				        // Filter libraries based on import type
+				        const showLibrary = (
+				            // For movies, only show movie libraries
+				            (importType === 'movies' && library.type === 'movie') ||
+				            // For shows or seasons, only show TV show libraries
+				            ((importType === 'shows' || importType === 'seasons') && library.type === 'show') ||
+				            // For collections, show both
+				            (importType === 'collections')
+				        );
+				        
+				        if (showLibrary) {
+				            matchingLibrariesCount++;
+				            const option = document.createElement('option');
+				            option.value = library.id;
+				            option.dataset.type = library.type;
+				            option.textContent = `${library.title} (${library.type === 'movie' ? 'Movies' : 'TV Shows'})`;
+				            librarySelect.appendChild(option);
+				        }
+				    });
+				    
+				    // If no libraries match the filter
+				    if (matchingLibrariesCount === 0) {
+				        librarySelect.innerHTML = '<option value="">No matching libraries found</option>';
+				        showErrorInImportOptions('No libraries of the required type were found');
+				    }
+				} else {
+				    librarySelect.innerHTML = '<option value="">No libraries found</option>';
+				    showErrorInImportOptions(data.error || 'No libraries found on Plex server');
+				}
+			} catch (error) {
+				librarySelect.innerHTML = '<option value="">Error loading libraries</option>';
+				showErrorInImportOptions('Error loading Plex libraries: ' + error.message);
+			}
+		}
+        
+        // Load shows for a specific library (for TV season selection)
+        async function loadPlexShows(libraryId) {
+            showSelect.innerHTML = '<option value="">Loading shows...</option>';
+            
+            try {
+                const response = await fetch('./include/plex-import.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        'action': 'get_plex_shows_for_seasons',
+                        'libraryId': libraryId
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success && data.data.length > 0) {
+                    plexShows = data.data;
+                    showSelect.innerHTML = '<option value="">Select show...</option>';
+                    
+                    plexShows.forEach(show => {
+                        const option = document.createElement('option');
+                        option.value = show.ratingKey;
+                        option.textContent = show.title + (show.year ? ` (${show.year})` : '');
+                        showSelect.appendChild(option);
+                    });
+                } else {
+                    showSelect.innerHTML = '<option value="">No shows found</option>';
+                    showErrorInImportOptions(data.error || 'No shows found in the selected library');
+                }
+            } catch (error) {
+                showSelect.innerHTML = '<option value="">Error loading shows</option>';
+                showErrorInImportOptions('Error loading shows: ' + error.message);
+            }
+        }
+        
+        // Display error in import options container
+		function showErrorInImportOptions(message) {
+			// Only show errors if we have an actual message and if the user has started making selections
+			if (message && importTypeSelect.value) {
+				importErrorContainer.textContent = message;
+				importErrorContainer.style.display = 'block';
+			}
+		}
+
+		function hideErrorInImportOptions() {
+			importErrorContainer.style.display = 'none';
+			importErrorContainer.textContent = '';
+		}
+
+		// Helper function to check if the user has started making selections
+		function hasUserStartedSelections() {
+			return importTypeSelect.value !== '';
+		}
+        
+        // Validate import options and enable/disable start button
+		function validateImportOptions() {
+			const importType = importTypeSelect.value;
+			const libraryId = librarySelect.value;
+			const showId = showSelect.value;
+			const importAllSeasons = document.getElementById('importAllSeasons')?.checked || false;
+			
+			let isValid = false;
+			
+			if (!importType || !libraryId) {
+				isValid = false;
+			} else if (importType === 'seasons') {
+				// If importing all seasons, we just need a valid library
+				// If importing specific show seasons, we need both library and show
+				isValid = importAllSeasons ? true : (showId ? true : false);
+			} else {
+				// For all other types, just need a valid library ID
+				isValid = true;
+			}
+			
+			startPlexImportButton.disabled = !isValid;
+			return isValid;
+		}
+		
+		// Updated checkbox handler for "Import all seasons"
+		const importAllSeasonsCheckbox = document.getElementById('importAllSeasons');
+		if (importAllSeasonsCheckbox) {
+			importAllSeasonsCheckbox.addEventListener('change', function() {
+				const showSelectionStep = document.getElementById('showSelectionStep');
+				
+				if (this.checked) {
+				    // Hide show selection when "Import all seasons" is checked
+				    showSelectionStep.style.display = 'none';
+				} else {
+				    // Show the show selection step if we have a library selected
+				    const libraryId = librarySelect.value;
+				    if (libraryId) {
+				        const selectedOption = librarySelect.options[librarySelect.selectedIndex];
+				        const libraryType = selectedOption ? selectedOption.dataset.type : '';
+				        
+				        if (libraryType === 'show') {
+				            showSelectionStep.style.display = 'block';
+				            // Load shows for the library if they're not already loaded
+				            if (showSelect.options.length <= 1) {
+				                loadPlexShows(libraryId);
+				            }
+				        }
+				    }
+				}
+				
+				validateImportOptions();
+			});
+		}
+        
+        // Handle import type selection
+		importTypeSelect.addEventListener('change', function() {
+			const selectedType = this.value;
+			
+			// Reset other steps
+			librarySelectionStep.style.display = 'none';
+			seasonsOptionsStep.style.display = 'none';
+			showSelectionStep.style.display = 'none';
+			targetDirectoryStep.style.display = 'none';
+			fileHandlingStep.style.display = 'none';
+			
+			// Reset selects with appropriate default messages
+			librarySelect.innerHTML = '<option value="">Loading libraries...</option>';
+			showSelect.innerHTML = '<option value="">Select a library first...</option>';
+			
+			// Hide any previous error messages
+			hideErrorInImportOptions();
+			
+			if (selectedType) {
+				// Show library selection step
+				librarySelectionStep.style.display = 'block';
+				
+				// Now it's appropriate to load libraries since user has selected a type
+				loadPlexLibraries();
+				
+				// Pre-select target directory based on import type
+				switch (selectedType) {
+				    case 'movies':
+				        targetDirectorySelect.value = 'movies';
+				        break;
+				    case 'shows':
+				        targetDirectorySelect.value = 'tv-shows';
+				        break;
+				    case 'seasons':
+				        targetDirectorySelect.value = 'tv-seasons';
+				        // Show seasons options step
+				        seasonsOptionsStep.style.display = 'block';
+				        break;
+				    case 'collections':
+				        targetDirectorySelect.value = 'collections';
+				        break;
+				}
+				
+				// Show file handling step
+				fileHandlingStep.style.display = 'block';
+			} else {
+				// If user clears the selection, reset the form
+				librarySelect.innerHTML = '<option value="">Select a content type first...</option>';
+				hideErrorInImportOptions();
+				fileHandlingStep.style.display = 'none';
+			}
+			
+			validateImportOptions();
 		});
-	</script>
+	
+	// Handle "Import all seasons" checkbox change
+	document.getElementById('importAllSeasons').addEventListener('change', function() {
+		const showSelectionStep = document.getElementById('showSelectionStep');
+		
+		if (this.checked) {
+		    // Hide show selection when "Import all seasons" is checked
+		    showSelectionStep.style.display = 'none';
+		} else {
+		    // Show the show selection step if we have a library selected
+		    const libraryId = librarySelect.value;
+		    if (libraryId) {
+		        const selectedOption = librarySelect.options[librarySelect.selectedIndex];
+		        const libraryType = selectedOption ? selectedOption.dataset.type : '';
+		        
+		        if (libraryType === 'show') {
+		            showSelectionStep.style.display = 'block';
+		        }
+		    }
+		}
+		
+		validateImportOptions();
+	});
+        
+        // Handle library selection
+        librarySelect.addEventListener('change', function() {
+            const selectedLibraryId = this.value;
+            const selectedOption = this.options[this.selectedIndex];
+            const libraryType = selectedOption ? selectedOption.dataset.type : '';
+            
+            // Reset show selection
+            showSelectionStep.style.display = 'none';
+            showSelect.innerHTML = '<option value="">Loading shows...</option>';
+            
+            // Hide error messages
+            hideErrorInImportOptions();
+            
+            if (selectedLibraryId) {
+                // If importing seasons, show the show selection step
+                if (importTypeSelect.value === 'seasons') {
+                    if (libraryType === 'show') {
+                        showSelectionStep.style.display = 'block';
+                        loadPlexShows(selectedLibraryId);
+                    } else {
+                        showErrorInImportOptions('Please select a TV Show library to import seasons');
+                    }
+                }
+            }
+            
+            validateImportOptions();
+        });
+        
+        // Handle show selection
+        showSelect.addEventListener('change', function() {
+            validateImportOptions();
+        });
+        
+        // Start the import process
+		startPlexImportButton.addEventListener('click', async function() {
+			if (!validateImportOptions()) {
+				return;
+			}
+			
+			// Get selected options
+			const importType = importTypeSelect.value;
+			const libraryId = librarySelect.value;
+			const importAllSeasons = document.getElementById('importAllSeasons')?.checked || false;
+			
+			// Only get showKey if we're not importing all seasons
+			const showKey = (importType === 'seasons' && !importAllSeasons) ? showSelect.value : null;
+			
+			const targetDirectory = targetDirectorySelect.value;
+			const overwriteOption = fileHandlingSelect.value;
+			
+			// Hide the close button when starting the import process
+			const closeButton = plexImportModal.querySelector('.modal-close-btn');
+			if (closeButton) {
+				closeButton.style.display = 'none';
+			}
+			
+			// Show progress container, hide options
+			importOptionsContainer.style.display = 'none';
+			importProgressContainer.style.display = 'block';
+			
+			// Start import process
+			try {
+				await importPlexPosters(importType, libraryId, showKey, targetDirectory, overwriteOption, importAllSeasons);
+			} catch (error) {
+				// Show the close button again on error
+				if (closeButton) {
+				    closeButton.style.display = 'block';
+				}
+				
+				// Hide the progress container
+				importProgressContainer.style.display = 'none';
+				importOptionsContainer.style.display = 'block';
+				
+				// Show error
+				showErrorInImportOptions('Import failed: ' + error.message);
+			}
+		});
+        
+        // Import posters from Plex
+		async function importPlexPosters(type, libraryId, showKey, contentType, overwriteOption, importAllSeasons) {
+			// Configure initial request
+			const initialParams = {
+				'action': 'import_plex_posters',
+				'type': type,
+				'libraryId': libraryId,
+				'contentType': contentType,
+				'overwriteOption': overwriteOption,
+				'batchProcessing': 'true',
+				'startIndex': 0
+			};
+			
+			// Add showKey for seasons import (when not importing all)
+			if (type === 'seasons' && !importAllSeasons && showKey) {
+				initialParams.showKey = showKey;
+			}
+			
+			// Add importAllSeasons parameter if true
+			if (type === 'seasons' && importAllSeasons) {
+				initialParams.importAllSeasons = 'true';
+			}
+			
+			let isComplete = false;
+			let currentIndex = 0;
+			const results = {
+				successful: 0,
+				skipped: 0,
+				failed: 0,
+				errors: []
+			};
+			
+			// Stats dashboard in the modal
+			const statsDashboard = `
+			<div id="importStatsDashboard" style="margin-top: 20px; display: flex; justify-content: space-between; text-align: center; gap: 10px;">
+				<div style="flex: 1; background: rgba(46, 213, 115, 0.1); border: 1px solid var(--success-color); border-radius: 6px; padding: 12px;">
+				    <div style="font-size: 24px; font-weight: bold; color: var(--success-color);" id="statsSuccessful">0</div>
+				    <div style="color: var(--text-primary);">Successful</div>
+				</div>
+				<div style="flex: 1; background: rgba(255, 159, 67, 0.1); border: 1px solid var(--accent-primary); border-radius: 6px; padding: 12px;">
+				    <div style="font-size: 24px; font-weight: bold; color: var(--accent-primary);" id="statsSkipped">0</div>
+				    <div style="color: var(--text-primary);">Skipped</div>
+				</div>
+				<div style="flex: 1; background: rgba(239, 68, 68, 0.1); border: 1px solid var(--danger-color); border-radius: 6px; padding: 12px;">
+				    <div style="font-size: 24px; font-weight: bold; color: var(--danger-color);" id="statsFailed">0</div>
+				    <div style="color: var(--text-primary);">Failed</div>
+				</div>
+			</div>
+			`;
+			
+			// Add stats dashboard to progress container
+			if (!document.getElementById('importStatsDashboard')) {
+				document.getElementById('importProgressDetails').insertAdjacentHTML('afterend', statsDashboard);
+			}
+			
+			// Update progress message for all seasons import
+			if (type === 'seasons' && importAllSeasons) {
+				document.getElementById('importProgressStatus').textContent = 'Importing season posters from all shows...';
+			}
+			
+			// While not complete and not cancelled
+			while (!isComplete && !importCancelled) {
+				try {
+				    const formData = new FormData();
+				    
+				    // Add all parameters
+				    for (const [key, value] of Object.entries({
+				        ...initialParams,
+				        'startIndex': currentIndex,
+				        'totalSuccessful': results.successful,
+				        'totalSkipped': results.skipped,
+				        'totalFailed': results.failed
+				    })) {
+				        formData.append(key, value);
+				    }
+				    
+				    const response = await fetch('./include/plex-import.php', {
+				        method: 'POST',
+				        body: formData
+				    });
+				    
+				    const data = await response.json();
+				    
+				    if (!data.success) {
+				        throw new Error(data.error || 'Unknown error during import');
+				    }
+				    
+				    // Update progress
+				    if (data.batchComplete) {
+				        // For "Import all seasons", show which show is being processed
+				        if (type === 'seasons' && importAllSeasons && data.progress.currentShow) {
+				            document.getElementById('importProgressStatus').textContent = 
+				                `Importing seasons from: ${data.progress.currentShow}`;
+				            
+				            // Season progress details
+				            if (data.progress.seasonCount !== undefined) {
+				                document.getElementById('importProgressDetails').innerHTML = 
+				                    `Processing show ${data.progress.processed} of ${data.progress.total} (${data.progress.percentage}%)<br>` +
+				                    `Found ${data.progress.seasonCount} seasons in current show`;
+				            } else {
+				                document.getElementById('importProgressDetails').textContent = 
+				                    `Processing show ${data.progress.processed} of ${data.progress.total} (${data.progress.percentage}%)`;
+				            }
+				        } else {
+				            // Regular batch progress
+				            const percentage = data.progress.percentage;
+				            if (importProgressBar) {
+				                importProgressBar.style.width = `${percentage}%`;
+				            }
+				            
+				            // Update progress text
+				            document.getElementById('importProgressDetails').textContent = 
+				                `Processing ${data.progress.processed} of ${data.progress.total} items (${percentage}%)`;
+				        }
+				        
+				        // Update progress bar for all cases
+				        const percentage = data.progress.percentage;
+				        if (importProgressBar) {
+				            importProgressBar.style.width = `${percentage}%`;
+				        }
+				        
+				        // Track results
+				        if (data.results) {
+				            results.successful += data.results.successful;
+				            results.skipped += data.results.skipped;
+				            results.failed += data.results.failed;
+				            
+				            // Concat any errors
+				            if (data.results.errors && data.results.errors.length) {
+				                results.errors = [...results.errors, ...data.results.errors];
+				            }
+				        }
+				        
+				        // Update stats dashboard with the latest totals
+				        updateStatsDashboard(results);
+				        
+				        // Check if complete
+				        isComplete = data.progress.isComplete;
+				        currentIndex = data.progress.nextIndex || 0;
+				    } else {
+				        // Handle non-batch processing result
+				        isComplete = true;
+				        
+				        if (data.results) {
+				            results.successful = data.results.successful;
+				            results.skipped = data.results.skipped;
+				            results.failed = data.results.failed;
+				            results.errors = data.results.errors || [];
+				        }
+				        
+				        // Update stats dashboard
+				        updateStatsDashboard(data.totalStats || results);
+				    }
+				    
+				    // If complete, show results
+				    if (isComplete) {
+				        // Update status text for results
+				        document.getElementById('importProgressStatus').textContent = 'Import complete!';
+				        
+				        // Small delay before showing the results screen
+				        setTimeout(() => {
+				            showImportResults(results);
+				        }, 500);
+				    }
+				} catch (error) {
+				    // Stop processing and show error
+				    throw error;
+				}
+			}
+			
+			return results;
+		}
+		
+		// Update the stats dashboard with the current totals
+		function updateStatsDashboard(stats) {
+			document.getElementById('statsSuccessful').textContent = stats.successful;
+			document.getElementById('statsSkipped').textContent = stats.skipped;
+			document.getElementById('statsFailed').textContent = stats.failed;
+		}
+        
+        // Show import results
+		function showImportResults(results) {
+			// Hide progress container
+			importProgressContainer.style.display = 'none';
+			
+			// Enhance results summary with stats
+			const resultsSummary = `
+			<div style="margin-bottom: 20px; text-align: center;">
+				<div style="display: flex; justify-content: space-between; gap: 15px; margin-bottom: 20px;">
+				    <div style="flex: 1; background: rgba(46, 213, 115, 0.1); border: 1px solid var(--success-color); border-radius: 6px; padding: 15px;">
+				        <div style="font-size: 28px; font-weight: bold; color: var(--success-color);">${results.successful}</div>
+				        <div style="color: var(--text-primary);">Successful</div>
+				    </div>
+				    <div style="flex: 1; background: rgba(255, 159, 67, 0.1); border: 1px solid var(--accent-primary); border-radius: 6px; padding: 15px;">
+				        <div style="font-size: 28px; font-weight: bold; color: var(--accent-primary);">${results.skipped}</div>
+				        <div style="color: var(--text-primary);">Skipped</div>
+				    </div>
+				    <div style="flex: 1; background: rgba(239, 68, 68, 0.1); border: 1px solid var(--danger-color); border-radius: 6px; padding: 15px;">
+				        <div style="font-size: 28px; font-weight: bold; color: var(--danger-color);">${results.failed}</div>
+				        <div style="color: var(--text-primary);">Failed</div>
+				    </div>
+				</div>
+				<div style="color: var(--text-secondary);">
+				    Total processed: ${results.successful + results.skipped + results.failed}
+				</div>
+			</div>
+			`;
+			
+			// Add the results summary to the results container
+			const existingContent = document.getElementById('importResultsContainer').innerHTML;
+			document.getElementById('importResultsContainer').innerHTML = existingContent.replace(
+				'<h3 style="margin-bottom: 16px; margin-top: 20px; display: flex; justify-content: center; align-items: center;">',
+				resultsSummary + '<h3 style="margin-bottom: 16px; margin-top: 20px; display: flex; justify-content: center; align-items: center;">'
+			);
+			
+			// Show results container
+			importResultsContainer.style.display = 'block';
+			
+			// Show errors if any
+			if (results.errors && results.errors.length > 0) {
+				const errorList = importErrors.querySelector('ul');
+				errorList.innerHTML = '';
+				
+				results.errors.forEach(error => {
+				    const li = document.createElement('li');
+				    li.textContent = error;
+				    errorList.appendChild(li);
+				});
+				
+				importErrors.style.display = 'block';
+			} else {
+				importErrors.style.display = 'none';
+			}
+			
+			// Show the close button again when results are shown
+			const closeButton = plexImportModal.querySelector('.modal-close-btn');
+			if (closeButton) {
+				closeButton.style.display = 'block';
+			}
+		}
+        
+        // Event handlers
+        showPlexImportButton.addEventListener('click', showPlexModal);
+        closePlexImportButton?.addEventListener('click', hidePlexModal);
+        
+        // Don't close when clicking outside the modal during import
+        plexImportModal.addEventListener('click', function(e) {
+            if (e.target === plexImportModal) {
+                // Check if import is in progress
+                if (importProgressContainer.style.display === 'block') {
+                    // Don't close if import is in progress
+                    return;
+                }
+                hidePlexModal();
+            }
+        });
+        
+        // Close error modal event handlers
+        closeErrorModalButton?.addEventListener('click', hideErrorModal);
+        
+        plexErrorCloseButtons.forEach(button => {
+            button.addEventListener('click', hideErrorModal);
+        });
+        
+		// Close results and prepare for a new import
+		closeResultsButton?.addEventListener('click', function() {
+			// Make sure to hide the modal and reset
+			hideModal(plexImportModal);
+			// Force a page refresh to ensure a clean state
+			setTimeout(function() {
+				window.location.reload();
+			}, 300);
+		});
+    }
+    
+    // =========== DELETE MODAL ===========
+    if (deleteModal) {
+        // Fix close button
+        const cancelDeleteBtn = document.getElementById('cancelDelete');
+        if (cancelDeleteBtn) {
+            cancelDeleteBtn.addEventListener('click', () => {
+                hideModal(deleteModal, deleteForm);
+            });
+        }
+
+        // Close when clicking outside the modal
+        deleteModal.addEventListener('click', (e) => {
+            if (e.target === deleteModal) {
+                hideModal(deleteModal, deleteForm);
+            }
+        });
+        
+        // Fix close button
+        if (closeDeleteButton) {
+            closeDeleteButton.addEventListener('click', () => {
+                hideModal(deleteModal, deleteForm);
+            });
+        }
+        
+        // Handle form submission
+        if (deleteForm) {
+            deleteForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const formData = new FormData(deleteForm);
+                
+                try {
+                    const response = await fetch(window.location.href, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        hideModal(deleteModal);
+                        window.location.reload();
+                    } else {
+                        alert(data.error || 'Failed to delete file');
+                    }
+                } catch (error) {
+                    console.error('Delete error:', error);
+                    alert('An error occurred while deleting the file');
+                }
+            });
+        }
+    }
+    
+    // =========== RENAME MODAL ===========
+    if (renameModal) {
+        function showRenameError(message) {
+            if (renameError) {
+                renameError.textContent = message;
+                renameError.style.display = 'block';
+            }
+        }
+        
+        function hideRenameError() {
+            if (renameError) {
+                renameError.style.display = 'none';
+                renameError.textContent = '';
+            }
+        }
+        
+        function validateFilename(filename) {
+            // Check for periods in the filename (excluding extension)
+            const periodCount = filename.split('.').length - 1;
+            if (periodCount > 0) {
+                showRenameError('Filename cannot contain periods');
+                return false;
+            }
+            
+            // Check for slashes and backslashes in the filename
+            if (filename.includes('/') || filename.includes('\\')) {
+                showRenameError('Filename cannot contain slashes');
+                return false;
+            }
+            return true;
+        }
+        
+        // When closing the modal, clear any error messages
+        document.getElementById('cancelRename')?.addEventListener('click', () => {
+            hideRenameError();
+            hideModal(renameModal, renameForm);
+        });
+        
+        closeRenameButton?.addEventListener('click', () => {
+            hideRenameError();
+            hideModal(renameModal, renameForm);
+        });
+        
+        // Close when clicking outside the modal
+        renameModal.addEventListener('click', (e) => {
+            if (e.target === renameModal) {
+                hideRenameError();
+                hideModal(renameModal, renameForm);
+            }
+        });
+        
+        // Real-time validation as user types
+        document.getElementById('newFilename')?.addEventListener('input', function(e) {
+            const filename = e.target.value;
+            validateFilename(filename);
+        });
+        
+        // Handle form submission
+        if (renameForm) {
+            renameForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                hideRenameError();
+                
+                const newFilename = document.getElementById('newFilename').value;
+                if (!validateFilename(newFilename)) {
+                    return;
+                }
+                
+                const formData = new FormData(renameForm);
+                
+                try {
+                    const response = await fetch(window.location.href, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        hideModal(renameModal);
+                        window.location.reload();
+                    } else {
+                        showRenameError(data.error || 'Failed to rename file');
+                    }
+                } catch (error) {
+                    console.error('Rename error:', error);
+                    showRenameError('An error occurred while renaming the file');
+                }
+            });
+        }
+    }
+    
+    // =========== MOVE MODAL ===========
+    if (moveModal) {
+        // Fix close button
+        const cancelMoveBtn = document.getElementById('cancelMove');
+        if (cancelMoveBtn) {
+            cancelMoveBtn.addEventListener('click', () => {
+                hideModal(moveModal, moveForm);
+            });
+        }
+
+        // Close when clicking outside the modal
+        moveModal.addEventListener('click', (e) => {
+            if (e.target === moveModal) {
+                hideModal(moveModal, moveForm);
+            }
+        });
+        
+        // Fix close button
+        if (closeMoveButton) {
+            closeMoveButton.addEventListener('click', () => {
+                hideModal(moveModal, moveForm);
+            });
+        }
+        
+        // Handle form submission
+        if (moveForm) {
+            moveForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const formData = new FormData(moveForm);
+                
+                try {
+                    const response = await fetch(window.location.href, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        hideModal(moveModal);
+                        window.location.reload();
+                    } else {
+                        alert(data.error || 'Failed to move file');
+                    }
+                } catch (error) {
+                    console.error('Move error:', error);
+                    alert('An error occurred while moving the file');
+                }
+            });
+        }
+    }
+    
+    // =========== COMMON FUNCTIONALITY ===========
+    
+    // Handle escape key for modals
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            if (loginModal?.classList.contains('show')) hideModal(loginModal, loginForm);
+            if (uploadModal?.classList.contains('show')) hideModal(uploadModal);
+            
+            // Don't close Plex import modal if import is in progress
+            if (plexImportModal?.classList.contains('show') && 
+                document.getElementById('importProgressContainer')?.style.display !== 'block') {
+                hideModal(plexImportModal);
+            }
+            
+            if (deleteModal?.classList.contains('show')) hideModal(deleteModal, deleteForm);
+            if (renameModal?.classList.contains('show')) hideModal(renameModal, renameForm);
+            if (moveModal?.classList.contains('show')) hideModal(moveModal, moveForm);
+            if (plexErrorModal?.classList.contains('show')) hideModal(plexErrorModal);
+        }
+    });
+    
+    // =========== UPLOAD ERROR HANDLING ===========
+    
+    const uploadError = document.querySelector('.upload-error');
+    
+    function showUploadError(message) {
+        if (uploadError) {
+            uploadError.textContent = message;
+            uploadError.style.display = 'block';
+        }
+    }
+    
+    function hideUploadError() {
+        if (uploadError) {
+            uploadError.style.display = 'none';
+            uploadError.textContent = '';
+        }
+    }
+    
+    // =========== FILE INPUT HANDLING ===========
+    
+    // File input handling
+    const fileInput = document.getElementById('fileInput');
+    if (fileInput) {
+        fileInput.addEventListener('change', function(e) {
+            const fileName = e.target.files[0]?.name || 'No file chosen';
+            const fileNameElement = this.parentElement.querySelector('.file-name');
+            if (fileNameElement) {
+                fileNameElement.textContent = fileName;
+            }
+        });
+    }
+    
+    // =========== GALLERY ITEM FUNCTIONALITY ===========
+    
+    // Event Handler Functions
+    function deleteHandler(e) {
+        e.preventDefault();
+        const filename = this.getAttribute('data-filename');
+        const dirname = this.getAttribute('data-dirname');
+        deleteFilenameInput.value = filename;
+        deleteDirectoryInput.value = dirname;
+        showModal(deleteModal);
+    }
+
+    function renameHandler(e) {
+        e.preventDefault();
+        const filename = this.getAttribute('data-filename');
+        const dirname = this.getAttribute('data-dirname');
+        const basename = this.getAttribute('data-basename');
+        oldFilenameInput.value = filename;
+        renameDirectoryInput.value = dirname;
+        newFilenameInput.value = basename;
+        newFilenameInput.select();
+        showModal(renameModal);
+    }
+
+    function moveHandler(e) {
+        e.preventDefault();
+        const filename = this.getAttribute('data-filename');
+        const dirname = this.getAttribute('data-dirname');
+        moveFilenameInput.value = filename;
+        moveSourceDirectoryInput.value = dirname;
+        
+        // Remove the current directory from target options
+        Array.from(moveTargetDirectorySelect.options).forEach(option => {
+            option.disabled = option.value === dirname;
+        });
+        
+        // Select the first enabled option
+        const firstEnabledOption = Array.from(moveTargetDirectorySelect.options).find(option => !option.disabled);
+        if (firstEnabledOption) {
+            firstEnabledOption.selected = true;
+        }
+        
+        showModal(moveModal);
+    }
+
+    function copyUrlHandler() {
+        // Get the URL and encode spaces
+        const url = this.getAttribute('data-url');
+        const encodedUrl = url.replace(/ /g, '%20');
+        
+        try {
+            navigator.clipboard.writeText(encodedUrl).then(() => {
+                showNotification();
+            });
+        } catch (err) {
+            console.error('Failed to copy: ', err);
+            
+            // Fallback for browsers that don't support clipboard API
+            const textarea = document.createElement('textarea');
+            textarea.value = encodedUrl;
+            textarea.style.position = 'fixed';
+            document.body.appendChild(textarea);
+            textarea.select();
+            
+            try {
+                document.execCommand('copy');
+                showNotification();
+            } catch (e) {
+                console.error('Fallback copy failed:', e);
+                alert('Copy failed. Please select and copy the URL manually.');
+            }
+            
+            document.body.removeChild(textarea);
+        }
+    }
+    
+    // Notification function
+    function showNotification() {
+        copyNotification.style.display = 'block';
+        copyNotification.classList.add('show');
+        
+        setTimeout(() => {
+            copyNotification.classList.remove('show');
+            setTimeout(() => {
+                copyNotification.style.display = 'none';
+            }, 300);
+        }, 2000);
+    }
+    
+    // Initialize all button handlers
+    function initializeButtons() {
+        // Copy buttons
+        document.querySelectorAll('.copy-url-btn').forEach(button => {
+            button.removeEventListener('click', copyUrlHandler);
+            button.addEventListener('click', copyUrlHandler);
+        });
+
+        // Delete buttons
+        document.querySelectorAll('.delete-btn').forEach(button => {
+            button.removeEventListener('click', deleteHandler);
+            button.addEventListener('click', deleteHandler);
+        });
+
+        // Rename buttons
+        document.querySelectorAll('.rename-btn').forEach(button => {
+            button.removeEventListener('click', renameHandler);
+            button.addEventListener('click', renameHandler);
+        });
+
+        // Move buttons
+        document.querySelectorAll('.move-btn').forEach(button => {
+            button.removeEventListener('click', moveHandler);
+            button.addEventListener('click', moveHandler);
+        });
+    }
+    
+    // Initialize caption truncation
+    function initializeTruncation() {
+        const captions = document.querySelectorAll('.gallery-caption');
+        
+        captions.forEach(caption => {
+            const text = caption.textContent.trim();
+            caption.textContent = text;
+            
+            const containerWidth = caption.clientWidth;
+            
+            const measurer = document.createElement('div');
+            measurer.style.visibility = 'hidden';
+            measurer.style.position = 'absolute';
+            measurer.style.whiteSpace = 'nowrap';
+            measurer.style.fontSize = window.getComputedStyle(caption).fontSize;
+            measurer.style.fontFamily = window.getComputedStyle(caption).fontFamily;
+            measurer.style.fontWeight = window.getComputedStyle(caption).fontWeight;
+            measurer.style.padding = window.getComputedStyle(caption).padding;
+            measurer.textContent = text;
+            document.body.appendChild(measurer);
+
+            const textWidth = measurer.offsetWidth;
+            document.body.removeChild(measurer);
+
+            if (textWidth > containerWidth * 0.9) {
+                let truncated = text;
+                let currentWidth = textWidth;
+                
+                let start = 0;
+                let end = text.length;
+                
+                while (start < end) {
+                    const mid = Math.floor((start + end + 1) / 2);
+                    const testText = text.slice(0, mid) + '...';
+                    measurer.textContent = testText;
+                    document.body.appendChild(measurer);
+                    currentWidth = measurer.offsetWidth;
+                    document.body.removeChild(measurer);
+                    
+                    if (currentWidth <= containerWidth * 0.9) {
+                        start = mid;
+                    } else {
+                        end = mid - 1;
+                    }
+                }
+                
+                truncated = text.slice(0, start) + '...';
+                caption.textContent = truncated;
+                caption.title = text; // Use native title for tooltip
+                caption.style.cursor = 'help';
+            }
+        });
+    }
+    
+    // Debounce function for resize handling
+    function debounce(func, wait) {
+        let timeout;
+        return function() {
+            const context = this, args = arguments;
+            clearTimeout(timeout);
+            timeout = setTimeout(function() {
+                func.apply(context, args);
+            }, wait);
+        };
+    }
+    
+    // Initialize gallery features
+    function initializeGalleryFeatures() {
+        // Initialize lazy loading
+        const observerOptions = {
+            root: null,
+            rootMargin: '50px',
+            threshold: 0.1
+        };
+        
+        const handleIntersection = (entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const img = entry.target;
+                    const placeholder = img.previousElementSibling;
+                    
+                    if (!img.classList.contains('loaded')) {
+                        img.src = img.dataset.src;
+                        
+                        img.onload = () => {
+                            img.classList.add('loaded');
+                            placeholder.classList.add('hidden');
+                        };
+                        
+                        img.onerror = () => {
+                            placeholder.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`;
+                        };
+                    }
+                    
+                    observer.unobserve(img);
+                }
+            });
+        };
+        
+        const observer = new IntersectionObserver(handleIntersection, observerOptions);
+        
+        document.querySelectorAll('.gallery-image').forEach(img => {
+            observer.observe(img);
+        });
+
+        // Handle touch interactions for gallery items
+        let isScrolling = false;
+        let scrollTimeout;
+        let overlayActivationTime = 0;
+        const OVERLAY_ACTIVATION_DELAY = 100; // Time in ms to wait before allowing button interactions
+        
+        // Add intercepting event listener for buttons
+        document.querySelectorAll('.overlay-action-button').forEach(button => {
+            button.addEventListener('touchstart', function(e) {
+                // If overlay was just activated, prevent button interaction
+                if (Date.now() - overlayActivationTime < OVERLAY_ACTIVATION_DELAY) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+            }, { capture: true }); // Use capture phase to intercept before regular handlers
+        });
+
+        // Handle touch interactions for gallery items
+        document.querySelectorAll('.gallery-item').forEach(item => {
+            let touchStartY = 0;
+            let touchStartX = 0;
+            let touchTimeStart = 0;
+
+            item.addEventListener('touchstart', function(e) {
+                if (isScrolling) return;
+                
+                if (!this.classList.contains('touch-active')) {
+                    touchStartY = e.touches[0].clientY;
+                    touchStartX = e.touches[0].clientX;
+                    touchTimeStart = Date.now();
+                }
+            }, { passive: true });
+
+            item.addEventListener('touchend', function(e) {
+                if (isScrolling) return;
+                
+                // Handle initial tap to show overlay
+                if (!this.classList.contains('touch-active')) {
+                    const touchEndY = e.changedTouches[0].clientY;
+                    const touchEndX = e.changedTouches[0].clientX;
+                    const touchTime = Date.now() - touchTimeStart;
+                    
+                    const dy = Math.abs(touchEndY - touchStartY);
+                    const dx = Math.abs(touchEndX - touchStartX);
+                    
+                    if (touchTime < 300 && dy < 10 && dx < 10) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        // Remove active class from all other items
+                        document.querySelectorAll('.gallery-item').forEach(otherItem => {
+                            if (otherItem !== this) {
+                                otherItem.classList.remove('touch-active');
+                            }
+                        });
+                        
+                        // Show this overlay and record the time
+                        this.classList.add('touch-active');
+                        overlayActivationTime = Date.now();
+                    }
+                }
+            });
+        });
+
+        // Close active overlay when touching outside
+        document.addEventListener('touchstart', function(e) {
+            if (!isScrolling && 
+                !e.target.closest('.gallery-item') && 
+                !e.target.closest('.overlay-action-button')) {
+                document.querySelectorAll('.gallery-item').forEach(item => {
+                    item.classList.remove('touch-active');
+                });
+            }
+        }, { passive: true });
+        
+        // Function to handle scroll events
+        function handleScroll() {
+            isScrolling = true;
+            
+            // Hide all overlay actions while scrolling
+            document.querySelectorAll('.gallery-item').forEach(item => {
+                item.classList.remove('touch-active');
+            });
+            
+            // Clear the existing timeout
+            clearTimeout(scrollTimeout);
+            
+            // Set a new timeout to mark scrolling as finished
+            scrollTimeout = setTimeout(() => {
+                isScrolling = false;
+            }, 100);
+        }
+
+        // Add scroll event listener
+        window.addEventListener('scroll', handleScroll, { passive: true });
+    }
+    
+    // =========== SEARCH FUNCTIONALITY ===========
+    
+    // Get the search form and input
+    const searchForm = document.querySelector('.search-form');
+    const searchInput = document.querySelector('.search-input');
+
+    // Set autocomplete off to prevent browser behavior
+    if (searchInput) {
+        searchInput.setAttribute('autocomplete', 'off');
+    }
+
+    // Handle form submission (search button click or Enter key)
+    if (searchForm) {
+        searchForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const searchValue = searchForm.querySelector('.search-input').value;
+            const currentUrl = new URL(window.location.href);
+            
+            if (searchValue) {
+                currentUrl.searchParams.set('search', searchValue);
+            } else {
+                currentUrl.searchParams.delete('search');
+            }
+            
+            // Maintain directory filter if exists
+            const currentDirectory = currentUrl.searchParams.get('directory');
+            if (currentDirectory) {
+                currentUrl.searchParams.set('directory', currentDirectory);
+            }
+            
+            // Update URL
+            window.history.pushState({}, '', currentUrl.toString());
+            
+            // Perform search
+            fetch(currentUrl.toString())
+                .then(response => response.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const newDoc = parser.parseFromString(html, 'text/html');
+                    
+                    // Update stats
+                    document.querySelector('.gallery-stats').innerHTML = 
+                        newDoc.querySelector('.gallery-stats').innerHTML;
+                    
+                    // Update pagination
+                    const paginationContainer = document.querySelector('.pagination');
+                    const newPagination = newDoc.querySelector('.pagination');
+                    
+                    if (paginationContainer) {
+                        if (newPagination) {
+                            paginationContainer.style.display = 'flex';
+                            paginationContainer.innerHTML = newPagination.innerHTML;
+                        } else {
+                            paginationContainer.style.display = 'none';
+                        }
+                    }
+                    
+                    // Get the gallery container
+                    const galleryContainer = document.querySelector('.gallery');
+                    
+                    // Check if there are results
+                    const newGallery = newDoc.querySelector('.gallery');
+                    const noResults = newDoc.querySelector('.no-results');
+                    
+                    if (newGallery) {
+                        // Show gallery with results
+                        if (galleryContainer) {
+                            galleryContainer.style.display = 'grid';
+                            galleryContainer.innerHTML = newGallery.innerHTML;
+                        }
+                        // Remove any existing no-results message
+                        const existingNoResults = document.querySelector('.no-results');
+                        if (existingNoResults) {
+                            existingNoResults.remove();
+                        }
+                    } else if (noResults) {
+                        // Hide gallery
+                        if (galleryContainer) {
+                            galleryContainer.style.display = 'none';
+                        }
+                        // Remove any existing no-results message
+                        const existingNoResults = document.querySelector('.no-results');
+                        if (existingNoResults) {
+                            existingNoResults.remove();
+                        }
+                        // Insert new no-results message after gallery stats
+                        const galleryStats = document.querySelector('.gallery-stats');
+                        galleryStats.insertAdjacentHTML('afterend', noResults.outerHTML);
+                    }
+                    
+                    // Blur the search input to hide keyboard on mobile
+                    if (searchInput) {
+                        searchInput.blur();
+                    }
+                    
+                    // Reinitialize observers and buttons
+                    initializeGalleryFeatures();
+                    initializeButtons();
+                });
+        });
+    }
+   
+
+    // Handle browser back/forward
+    window.addEventListener('popstate', function() {
+        location.reload();
+    });
+    
+    // =========== INITIALIZATION ===========
+    
+    // Initial setup
+    initializeGalleryFeatures();
+    initializeButtons();
+    initializeTruncation();
+    
+    // Call truncation after images load and on resize
+    document.querySelectorAll('.gallery-image').forEach(img => {
+        img.addEventListener('load', initializeTruncation);
+    });
+    
+    // Debounced resize handler
+    window.addEventListener('resize', debounce(initializeTruncation, 250));
+    
+    // Clear error when switching tabs in upload modal
+    document.querySelectorAll('.upload-tab-btn').forEach(button => {
+        button.addEventListener('click', () => {
+            hideUploadError();
+        });
+    });
+});
+</script>
 </body>
 </html>

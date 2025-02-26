@@ -1,6 +1,6 @@
 <h1><img src="https://raw.githubusercontent.com/jeremehancock/Posteria/main/images/logo.png" height="50" /> Posteria</h1>
 
-Posteria is a web-based media poster management system that allows you to organize and store custom posters for your movies, TV shows, seasons, and collections. It provides an elegant interface for uploading, managing, and accessing your media artwork.
+Posteria is a web-based media poster management system that allows you to organize and store custom posters for your movies, TV shows, seasons, and collections. It provides an elegant interface for uploading, importing, managing, and accessing your media artwork.
 
 ## Features
 Here's the updated version with the PWA line added:
@@ -12,6 +12,7 @@ Here's the updated version with the PWA line added:
 - 📲 Installable as a PWA (Progressive Web App)
 - 🔒 Simple authentication system
 - ⚡ Easy poster upload from local files or URLs
+- 🎬 Import posters from Plex
 - 🔄 Move posters between categories
 - 🎨 Support for JPG, JPEG, PNG, and WebP formats
 
@@ -40,6 +41,8 @@ services:
       - SESSION_DURATION=3600        # In seconds
       - IMAGES_PER_PAGE=24
       - MAX_FILE_SIZE=5242880        # In bytes
+      - PLEX_SERVER_URL=             # Optional for Importing from Plex
+      - PLEX_TOKEN=                  # Optional for Importing from Plex
     volumes:
       - ./posters/movies:/var/www/html/posters/movies
       - ./posters/tv-shows:/var/www/html/posters/tv-shows
@@ -65,7 +68,8 @@ docker-compose up -d
 | SESSION_DURATION | Login session duration in seconds | 3600 (1 Hour) |
 | IMAGES_PER_PAGE | Number of posters displayed per page | 24 |
 | MAX_FILE_SIZE | Maximum upload file size in bytes | 5242880 (5MB) |
-
+| PLEX_SERVER_URL | URL for your Plex Server | ex: http://your-server:32400
+| PLEX_TOKEN | Plex Server Token | [More info](https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/) |
 ### Volume Mounts
 
 The Docker container uses the following volume mounts:
@@ -82,7 +86,8 @@ The Docker container uses the following volume mounts:
 3. Upload posters via the upload button:
    - Support for local file upload
    - Support for direct URL upload
-4. Manage your posters:
+4. Import from Plex
+5. Manage your posters:
    - Move between categories
    - Rename files
    - Delete unwanted posters

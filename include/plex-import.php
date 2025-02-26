@@ -464,7 +464,7 @@ try {
             
             $seasons = [];
             foreach ($data['MediaContainer']['Metadata'] as $season) {
-                if (isset($season['thumb']) && isset($season['index']))
+                if (isset($season['thumb']) && isset($season['index'])) {
                     $seasons[] = [
                         'title' => $season['parentTitle'] . ' - ' . $season['title'],
                         'id' => $season['ratingKey'],

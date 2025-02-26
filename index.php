@@ -771,7 +771,7 @@
 			display: inline-flex;
 			align-items: center;
 			gap: 8px;
-			padding: 12px 20px;
+			padding: 12px;
 			border-radius: 8px;
 			cursor: pointer;
 			font-weight: 600;
@@ -1881,21 +1881,22 @@
 				            Upload
 				        </button>
 				        <a href="?action=logout" class="logout-button" title="Logout">
-				            <svg class="logout-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-				                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-				                <polyline points="16 17 21 12 16 7"></polyline>
-				                <line x1="21" y1="12" x2="9" y2="12"></line>
-				            </svg>
-				            
+							<svg class="logout-icon" xmlns="http://www.w3.org/2000/svg" viewBox="-2 -2 28 28" fill="none" stroke="currentColor" stroke-width="2" style="margin-left: 5px;">
+							  <!-- Half Circle (using M start, A arc, Z close) -->
+							  <path d="M7 4 A 8 8 0 0 0 7 20" stroke-linecap="round"></path>
+							  <polyline points="14 7 19 12 14 17" stroke-linecap="round" stroke-linejoin="round"></polyline>
+							  <line x1="19" y1="12" x2="7" y2="12" stroke-linecap="round"></line>
+							</svg>
 				        </a>
 				    </div>
 		        <?php else: ?>
 		            <button id="showLoginModal" class="login-trigger-button">
-		                <svg class="login-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-		                    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
-		                    <polyline points="10 17 15 12 10 7"></polyline>
-		                    <line x1="15" y1="12" x2="3" y2="12"></line>
-		                </svg>
+						<svg class="login-icon" xmlns="http://www.w3.org/2000/svg" viewBox="-2 -2 28 28" fill="none" stroke="currentColor" stroke-width="2">
+						  <!-- Half Circle (using M start, A arc, Z close) -->
+						  <path d="M17 4 A 8 8 0 0 1 17 20" stroke-linecap="round"></path>
+						  <polyline points="10 7 5 12 10 17" stroke-linecap="round" stroke-linejoin="round"></polyline>
+						  <line x1="5" y1="12" x2="17" y2="12" stroke-linecap="round"></line>
+						</svg>
 		                Login
 		            </button>
 		        <?php endif; ?>

@@ -1396,7 +1396,7 @@
 			white-space: nowrap;
 			overflow: hidden;
 			text-overflow: ellipsis;
-			height: 40px;
+			height: 41px;
 		}
 
 		.custom-file-input label:hover {
@@ -1425,6 +1425,7 @@
 			white-space: nowrap;
 			min-width: 120px;
 			font-weight: 600;
+			margin-top: 20px;
 		}
 
 		.upload-button:hover {

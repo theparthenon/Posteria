@@ -1869,7 +1869,7 @@
 							<polyline points="8 7 3 12 8 17"></polyline>
 							<line x1="3" y1="12" x2="15" y2="12"></line>
 						</svg>
-							Import from Plex
+							Import
 						</button>
 						<?php endif; ?>
 				        <button id="showUploadModal" class="upload-trigger-button">

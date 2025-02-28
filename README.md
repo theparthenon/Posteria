@@ -42,7 +42,7 @@ services:
       - IMAGES_PER_PAGE=24
       - MAX_FILE_SIZE=5242880           # In bytes
       - PLEX_SERVER_URL=   		# Optional for Importing from Plex
-	- PLEX_TOKEN=             	# Optional for Importing from Plex
+      - PLEX_TOKEN=             	# Optional for Importing from Plex
       - JELLYFIN_SERVER_URL=		# Optional for Importing from Jellyfin
       - JELLYFIN_API_KEY=		# Optional for Importing from Jellyfin
     volumes:

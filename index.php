@@ -1605,6 +1605,57 @@
 			padding: 8px;
 			color: var(--text-secondary);
 		}
+		
+		/* Dropdown Styles */
+		.dropdown {
+			position: relative;
+			display: inline-block;
+		}
+
+		.dropdown-toggle {
+			cursor: pointer;
+			display: inline-flex;
+			align-items: center;
+		}
+
+		.dropdown-content {
+			display: none;
+			position: absolute;
+			right: 0;
+			background-color: var(--bg-secondary);
+			width: max-content;
+			box-shadow: var(--shadow-md);
+			z-index: 100;
+			border-radius: 8px;
+			border: 1px solid var(--border-color);
+			overflow: hidden;
+		}
+
+		.dropdown-content a {
+			color: var(--text-primary);
+			padding: 12px 16px;
+			text-decoration: none;
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			transition: all 0.2s;
+			justify-content: center;
+		}
+
+		.dropdown-content a:hover {
+			background-color: var(--bg-tertiary);
+			color: var(--accent-primary);
+		}
+
+		.dropdown:hover .dropdown-content {
+			display: block;
+		}
+
+		/* Jellyfin Import Modal styles - mostly reusing Plex styles */
+		#jellyfinImportModal .modal-content,
+		#jellyfinErrorModal .modal-content {
+			max-width: 600px;
+		}
 
 		/* Responsive Styles */
 		@media (max-width: 1024px) {
@@ -1859,46 +1910,65 @@
 						<span class="site-title"><?php echo htmlspecialchars($site_title); ?></span>
 					</h1>
 				</a>
-				<?php if (isLoggedIn()): ?>
-				    <div class="auth-actions">
-						<?php if (!empty($plex_config['token']) && !empty($plex_config['server_url'])): ?>
-						<button id="showPlexImportModal" class="upload-trigger-button">
-						<svg class="upload-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-							<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
-							<polyline points="8 7 3 12 8 17"></polyline>
-							<line x1="3" y1="12" x2="15" y2="12"></line>
-						</svg>
-							Import
-						</button>
-						<?php endif; ?>
-				        <button id="showUploadModal" class="upload-trigger-button">
-				            <svg class="upload-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-				                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-				                <polyline points="17 8 12 3 7 8"></polyline>
-				                <line x1="12" y1="3" x2="12" y2="15"></line>
-				            </svg>
-				            Upload
-				        </button>
-				        <a href="?action=logout" class="logout-button" title="Logout">
-							<svg class="logout-icon" xmlns="http://www.w3.org/2000/svg" viewBox="-2 -2 28 28" fill="none" stroke="currentColor" stroke-width="2" style="margin-left: 5px;">
-							  <!-- Half Circle (using M start, A arc, Z close) -->
-							  <path d="M7 4 A 8 8 0 0 0 7 20" stroke-linecap="round"></path>
-							  <polyline points="14 7 19 12 14 17" stroke-linecap="round" stroke-linejoin="round"></polyline>
-							  <line x1="19" y1="12" x2="7" y2="12" stroke-linecap="round"></line>
-							</svg>
-				        </a>
-				    </div>
-		        <?php else: ?>
-		            <button id="showLoginModal" class="login-trigger-button">
-						<svg class="login-icon" xmlns="http://www.w3.org/2000/svg" viewBox="-2 -2 28 28" fill="none" stroke="currentColor" stroke-width="2">
-						  <!-- Half Circle (using M start, A arc, Z close) -->
-						  <path d="M17 4 A 8 8 0 0 1 17 20" stroke-linecap="round"></path>
-						  <polyline points="10 7 5 12 10 17" stroke-linecap="round" stroke-linejoin="round"></polyline>
-						  <line x1="5" y1="12" x2="17" y2="12" stroke-linecap="round"></line>
-						</svg>
-		                Login
-		            </button>
-		        <?php endif; ?>
+<?php if (isLoggedIn()): ?>
+    <div class="auth-actions">
+        <?php if ((!empty($plex_config['token']) && !empty($plex_config['server_url'])) || 
+                  (!empty($jellyfin_config['api_key']) && !empty($jellyfin_config['server_url']))): ?>
+        <div class="dropdown">
+            <button class="upload-trigger-button dropdown-toggle">
+                <svg class="upload-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+                    <polyline points="8 7 3 12 8 17"></polyline>
+                    <line x1="3" y1="12" x2="15" y2="12"></line>
+                </svg>
+                Import
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12" style="margin-left: 5px;">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </button>
+            <div class="dropdown-content">
+                <?php if (!empty($plex_config['token']) && !empty($plex_config['server_url'])): ?>
+                <a href="#" id="showPlexImportModal">
+                	From Plex
+                </a>
+                <?php endif; ?>
+                <?php if (!empty($jellyfin_config['api_key']) && !empty($jellyfin_config['server_url'])): ?>
+                <a href="#" id="showJellyfinImportModal">
+					From Jellyfin
+                </a>
+                <?php endif; ?>
+            </div>
+        </div>
+        <?php endif; ?>
+        
+        <button id="showUploadModal" class="upload-trigger-button">
+            <svg class="upload-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            Upload
+        </button>
+        <a href="?action=logout" class="logout-button" title="Logout">
+            <svg class="logout-icon" xmlns="http://www.w3.org/2000/svg" viewBox="-2 -2 28 28" fill="none" stroke="currentColor" stroke-width="2" style="margin-left: 5px;">
+              <!-- Half Circle (using M start, A arc, Z close) -->
+              <path d="M7 4 A 8 8 0 0 0 7 20" stroke-linecap="round"></path>
+              <polyline points="14 7 19 12 14 17" stroke-linecap="round" stroke-linejoin="round"></polyline>
+              <line x1="19" y1="12" x2="7" y2="12" stroke-linecap="round"></line>
+            </svg>
+        </a>
+    </div>
+<?php else: ?>
+    <button id="showLoginModal" class="login-trigger-button">
+        <svg class="login-icon" xmlns="http://www.w3.org/2000/svg" viewBox="-2 -2 28 28" fill="none" stroke="currentColor" stroke-width="2">
+          <!-- Half Circle (using M start, A arc, Z close) -->
+          <path d="M17 4 A 8 8 0 0 1 17 20" stroke-linecap="round"></path>
+          <polyline points="10 7 5 12 10 17" stroke-linecap="round" stroke-linejoin="round"></polyline>
+          <line x1="5" y1="12" x2="17" y2="12" stroke-linecap="round"></line>
+        </svg>
+        Login
+    </button>
+<?php endif; ?>
 			</div>
 		</header>
 		
@@ -2050,6 +2120,157 @@
 		            <button type="button" class="modal-button cancel plexErrorClose">Close</button>
 		        </div>
 		    </div>
+		</div>
+	</div>
+
+	<!-- Jellyfin Import Modal -->
+	<div id="jellyfinImportModal" class="modal">
+		<div class="modal-content" style="max-width: 600px;">
+			<div class="modal-header">
+			    <h3>Import Posters from Jellyfin</h3>
+			    <button type="button" class="modal-close-btn">×</button>
+			</div>
+
+			<div class="jellyfin-import-content">
+			    <div id="jellyfinConnectionStatus" style="margin-bottom: 20px; display: none;"></div>
+			    
+			    <!-- Jellyfin Import Options -->
+			    <div id="jellyfinImportOptions">
+			        <!-- Step 1: Media Type -->
+			        <div class="import-step" id="jellyfinImportTypeStep">
+			            <h4 style="margin-bottom: 12px;">What would you like to import?</h4>
+			            <div class="directory-select" style="margin-bottom: 16px;">
+			                <select id="jellyfinImportType" class="login-input">
+			                    <option value="">Select content type...</option>
+			                    <option value="movies">Movies</option>
+			                    <option value="shows">TV Shows</option>
+			                    <option value="seasons">TV Seasons</option>
+			                    <option value="collections">Collections</option>
+			                </select>
+			            </div>
+			        </div>
+			        
+			        <!-- Step 2: Library Selection -->
+			        <div class="import-step" id="jellyfinLibrarySelectionStep" style="display: none;">
+			            <h4 style="margin-bottom: 12px;">Select Library</h4>
+			            <div class="directory-select" style="margin-bottom: 16px;">
+			                <select id="jellyfinLibrary" class="login-input">
+			                    <option value="">Loading libraries...</option>
+			                </select>
+			            </div>
+			        </div>
+			        
+			        <!-- Option to import all seasons -->
+			        <div class="import-step" id="jellyfinSeasonsOptionsStep" style="display: none;">
+			            <div style="margin-bottom: 16px;">
+			                <label class="checkbox-container" style="display: flex; align-items: center; cursor: pointer; margin-top: 8px;">
+			                    <input type="checkbox" id="jellyfinImportAllSeasons" style="margin-right: 8px;">
+			                    <span>Import all seasons from all shows (may take longer)</span>
+			                </label>
+			            </div>
+			        </div>
+			        
+			        <!-- Step 2b: Show Selection (only for seasons) -->
+			        <div class="import-step" id="jellyfinShowSelectionStep" style="display: none;">
+			            <h4 style="margin-bottom: 12px;">Select TV Show</h4>
+			            <div class="directory-select" style="margin-bottom: 16px;">
+			                <select id="jellyfinShow" class="login-input">
+			                    <option value="">Loading shows...</option>
+			                </select>
+			            </div>
+			        </div>
+			        
+			        <!-- Step 3: Target Directory -->
+			        <div class="import-step" id="jellyfinTargetDirectoryStep" style="display: none;">
+			            <h4 style="margin-bottom: 12px;">Save to Directory</h4>
+			            <div class="directory-select" style="margin-bottom: 16px;">
+			                <select id="jellyfinTargetDirectory" class="login-input">
+			                    <option value="movies">Movies</option>
+			                    <option value="tv-shows">TV Shows</option>
+			                    <option value="tv-seasons">TV Seasons</option>
+			                    <option value="collections">Collections</option>
+			                </select>
+			            </div>
+			        </div>
+			        
+			        <!-- Step 4: File Handling -->
+			        <div class="import-step" id="jellyfinFileHandlingStep" style="display: none;">
+			            <h4 style="margin-bottom: 12px;">If file already exists</h4>
+			            <div class="directory-select" style="margin-bottom: 16px;">
+			                <select id="jellyfinFileHandling" class="login-input">
+			                    <option value="overwrite">Update if Changed</option>
+			                    <option value="copy">Create copy</option>
+			                    <option value="skip">Skip</option>
+			                </select>
+			            </div>
+			        </div>
+			        
+			        <div class="jellyfin-import-error" style="display: none; color: var(--danger-color); background: rgba(239, 68, 68, 0.1); border: 1px solid var(--danger-color); padding: 12px; border-radius: 6px; margin-top: 16px;"></div>
+			        
+			        <div class="modal-actions" style="margin-top: 32px; justify-content: end;">
+			            <button type="button" id="startJellyfinImport" class="modal-button rename" disabled>
+			                Start Import
+			            </button>
+			        </div>
+			    </div>
+			    
+			    <!-- Progress Container (hidden by default) -->
+			    <div id="jellyfinImportProgressContainer" style="display: none; text-align: center;">              
+			        <div>
+			            <h3 id="jellyfinImportProgressStatus">Importing posters...</h3>
+			            <div id="jellyfinImportProgressBar" style="height: 8px; background: #333; border-radius: 4px; margin: 16px 0; overflow: hidden;">
+			                <div style="height: 100%; width: 0%; background: linear-gradient(45deg, var(--accent-primary), #ff9f43); transition: width 0.3s;"></div>
+			            </div>
+			            <div id="jellyfinImportProgressDetails" style="margin-top: 10px; color: var(--text-secondary);">
+			                Processing 0 of 0 items (0%)
+			            </div>
+			            <p style="margin-top: 20px; color: var(--text-secondary); font-style: italic;">
+			                This process can take a while with large libraries. 
+			            </p>
+			            <p style="margin-top: 10px; color: var(--text-secondary); font-style: italic;">
+			                Please don't refresh or close the window until import is complete.
+			            </p>
+			        </div>
+			    </div>
+			    
+			    <!-- Results Container (hidden by default) -->
+			    <div id="jellyfinImportResultsContainer" style="display: none; text-align: center;">
+			        <h3 style="margin-bottom: 16px; margin-top: 20px; display: flex; justify-content: center; align-items: center;">                    
+			            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="var(--success-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+			            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+			            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+			            </svg>
+			            <span style="margin-left: 10px;">Import Complete</span>
+			        </h3>
+			        
+			        <div id="jellyfinImportErrors" style="display: none; margin-top: 20px; text-align: left; max-height: 150px; overflow-y: auto; padding: 12px; background: rgba(239, 68, 68, 0.1); border: 1px solid var(--danger-color); border-radius: 6px;">
+			            <h4 style="margin-bottom: 8px; color: var(--danger-color);">Errors:</h4>
+			            <ul style="margin-left: 20px; color: var(--danger-color);"></ul>
+			        </div>
+			        
+			        <div class="modal-actions" style="margin-top: 20px; justify-content: end;">
+			            <button type="button" id="closeJellyfinImportResults" class="modal-button rename" onclick="document.getElementById('jellyfinImportModal').classList.remove('show'); setTimeout(function() { document.getElementById('jellyfinImportModal').style.display = 'none'; window.location.reload(); }, 300);">
+			                Close
+			            </button>
+			        </div>
+			    </div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Error Modal for Jellyfin Import -->
+	<div id="jellyfinErrorModal" class="modal">
+		<div class="modal-content">
+			<div class="modal-header">
+			    <h3>Import Error</h3>
+			    <button type="button" class="modal-close-btn">×</button>
+			</div>
+			<div class="modal-body">
+			    <p id="jellyfinErrorMessage" style="margin-bottom: 20px; color: var(--danger-color);"></p>
+			    <div class="modal-actions">
+			        <button type="button" class="modal-button cancel jellyfinErrorClose">Close</button>
+			    </div>
+			</div>
 		</div>
 	</div>
 		    
@@ -2406,7 +2627,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         loginError.style.display = 'block';
                     }
                 } catch (error) {
-                    console.error('Login error:', error);
                     loginError.textContent = 'An error occurred during login';
                     loginError.style.display = 'block';
                 }
@@ -2502,7 +2722,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     }
                 } catch (error) {
-                    console.error('Upload error:', error);
                     showUploadError('An error occurred during upload');
                     
                     // Reset file input on error while keeping modal open
@@ -2560,7 +2779,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         urlInput.value = '';
                     }
                 } catch (error) {
-                    console.error('Upload error:', error);
                     showUploadError('An error occurred during upload');
                     
                     // Clear URL input on error while keeping modal open
@@ -2568,6 +2786,1015 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
         }
+    }
+    
+    // Check if Jellyfin Import Modal exists
+    const jellyfinImportModal = document.getElementById('jellyfinImportModal');
+    const showJellyfinImportButton = document.getElementById('showJellyfinImportModal');
+
+    if (jellyfinImportModal && showJellyfinImportButton) {
+        // Modal elements
+        const closeJellyfinImportButton = jellyfinImportModal.querySelector('.modal-close-btn');
+        const jellyfinErrorModal = document.getElementById('jellyfinErrorModal');
+        const closeJellyfinErrorButton = jellyfinErrorModal?.querySelector('.modal-close-btn');
+        const jellyfinErrorCloseButtons = document.querySelectorAll('.jellyfinErrorClose');
+        
+        // Form elements
+        const jellyfinImportType = document.getElementById('jellyfinImportType');
+        const jellyfinLibrary = document.getElementById('jellyfinLibrary');
+        const jellyfinShow = document.getElementById('jellyfinShow');
+        const jellyfinTargetDirectory = document.getElementById('jellyfinTargetDirectory');
+        const jellyfinFileHandling = document.getElementById('jellyfinFileHandling');
+        const startJellyfinImportButton = document.getElementById('startJellyfinImport');
+        
+        // Step containers
+        const jellyfinImportTypeStep = document.getElementById('jellyfinImportTypeStep');
+        const jellyfinLibrarySelectionStep = document.getElementById('jellyfinLibrarySelectionStep');
+        const jellyfinShowSelectionStep = document.getElementById('jellyfinShowSelectionStep');
+        const jellyfinSeasonsOptionsStep = document.getElementById('jellyfinSeasonsOptionsStep');
+        const jellyfinTargetDirectoryStep = document.getElementById('jellyfinTargetDirectoryStep');
+        const jellyfinFileHandlingStep = document.getElementById('jellyfinFileHandlingStep');
+        
+        // Progress and results elements
+        const jellyfinImportProgressContainer = document.getElementById('jellyfinImportProgressContainer');
+        const jellyfinImportProgressBar = document.getElementById('jellyfinImportProgressBar')?.querySelector('div');
+        const jellyfinImportProgressDetails = document.getElementById('jellyfinImportProgressDetails');
+        const jellyfinImportResultsContainer = document.getElementById('jellyfinImportResultsContainer');
+        const jellyfinImportOptionsContainer = document.getElementById('jellyfinImportOptions');
+        
+        // Error handling
+        const jellyfinImportErrorContainer = document.querySelector('.jellyfin-import-error');
+        const jellyfinErrorMessage = document.getElementById('jellyfinErrorMessage');
+        
+        // Results elements
+        const jellyfinImportErrors = document.getElementById('jellyfinImportErrors');
+        const closeJellyfinResultsButton = document.getElementById('closeJellyfinImportResults');
+        
+        // Connection status
+        const connectionStatus = document.getElementById('jellyfinConnectionStatus');
+        
+        // State variables
+        let jellyfinLibraries = [];
+        let jellyfinShows = [];
+        let importCancelled = false;
+        
+        // Show/hide Jellyfin Import Modal functions
+        function showJellyfinModal() {
+            showModal(jellyfinImportModal);
+            
+            // Reset the form to a clean state
+            resetJellyfinImport();
+            
+            // Test the connection
+            testJellyfinConnection();
+        }
+
+        function hideJellyfinModal() {
+            hideModal(jellyfinImportModal);
+            resetJellyfinImport();
+        }
+        
+        function showJellyfinErrorModal(message) {
+            jellyfinErrorMessage.textContent = message;
+            showModal(jellyfinErrorModal);
+        }
+        
+        function hideJellyfinErrorModal() {
+            hideModal(jellyfinErrorModal);
+        }
+        
+        // Reset the import form
+        function resetJellyfinImport() {
+            // Show the close button again when results are shown
+            const closeButton = jellyfinImportModal.querySelector('.modal-close-btn');
+            if (closeButton) {
+                closeButton.style.display = 'block';
+                
+                // Ensure close button has proper event handler
+                closeButton.addEventListener('click', function() {
+                    hideModal(jellyfinImportModal);
+                    // Force a page refresh to ensure a clean state
+                    setTimeout(function() {
+                        window.location.reload();
+                    }, 300);
+                });
+            }
+                
+            // Reset form selections
+            jellyfinImportType.value = '';
+            jellyfinLibrary.innerHTML = '<option value="">Select a content type first...</option>';
+            jellyfinShow.innerHTML = '<option value="">Select a library first...</option>';
+            jellyfinTargetDirectory.value = 'movies';
+            jellyfinFileHandling.value = 'overwrite';
+            
+            // Hide all steps except type
+            jellyfinImportTypeStep.style.display = 'block';
+            jellyfinLibrarySelectionStep.style.display = 'none';
+            jellyfinShowSelectionStep.style.display = 'none';
+            jellyfinSeasonsOptionsStep.style.display = 'none';
+            jellyfinTargetDirectoryStep.style.display = 'none';
+            jellyfinFileHandlingStep.style.display = 'none';
+            
+            // Reset containers
+            jellyfinImportProgressContainer.style.display = 'none';
+            jellyfinImportResultsContainer.style.display = 'none';
+            jellyfinImportOptionsContainer.style.display = 'block';
+            
+            // Hide error container
+            jellyfinImportErrorContainer.style.display = 'none';
+            jellyfinImportErrorContainer.textContent = '';
+            
+            // Disable start button
+            startJellyfinImportButton.disabled = true;
+            
+            // Reset progress
+            if (jellyfinImportProgressBar) {
+                jellyfinImportProgressBar.style.width = '0%';
+            }
+            jellyfinImportProgressDetails.textContent = 'Processing 0 of 0 items (0%)';
+            
+            // Reset import cancelled flag
+            importCancelled = false;
+        }
+        
+        // Test Jellyfin connection and display status
+        async function testJellyfinConnection() {
+            connectionStatus.style.display = 'block';
+            connectionStatus.innerHTML = `
+                <div style="padding: 10px; border-radius: 4px; background: rgba(255, 159, 67, 0.1); border: 1px solid var(--accent-primary);">
+                    <span style="display: inline-block; margin-right: 8px;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                    </span>
+                    Testing connection to Jellyfin server...
+                </div>
+            `;
+            
+            try {
+                const response = await fetch('./include/jellyfin-import.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        'action': 'test_jellyfin_connection'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    connectionStatus.innerHTML = `
+                        <div style="padding: 10px; border-radius: 4px; background: rgba(46, 213, 115, 0.1); border: 1px solid var(--success-color);">
+                            <span style="display: inline-block; margin-right: 8px; color: var(--success-color);">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                </svg>
+                            </span>
+                            Connected to Jellyfin server
+                        </div>
+                    `;
+                    
+                    // Load libraries if connection successful
+                    loadJellyfinLibraries();
+                } else {
+                    connectionStatus.innerHTML = `
+                        <div style="padding: 10px; border-radius: 4px; background: rgba(239, 68, 68, 0.1); border: 1px solid var(--danger-color);">
+                            <span style="display: inline-block; margin-right: 8px; color: var(--danger-color);">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                </svg>
+                            </span>
+                            Failed to connect to Jellyfin server: ${data.error}
+                        </div>
+                    `;
+                    
+                    // Disable the form if connection failed
+                    startJellyfinImportButton.disabled = true;
+                }
+            } catch (error) {
+                connectionStatus.innerHTML = `
+                    <div style="padding: 10px; border-radius: 4px; background: rgba(239, 68, 68, 0.1); border: 1px solid var(--danger-color);">
+                        <span style="display: inline-block; margin-right: 8px; color: var(--danger-color);">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="8" x2="12" y2="12"></line>
+                                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                            </svg>
+                        </span>
+                        Error connecting to Jellyfin server: ${error.message}
+                    </div>
+                `;
+                
+                // Disable the form if connection error
+                startJellyfinImportButton.disabled = true;
+            }
+        }
+        
+        // Load Jellyfin libraries based on import type
+        async function loadJellyfinLibraries() {
+            // Get the currently selected import type
+            const importType = jellyfinImportType.value;
+            
+            // If no import type is selected, don't try to load libraries
+            if (!importType) {
+                jellyfinLibrary.innerHTML = '<option value="">Select a content type first...</option>';
+                return;
+            }
+            
+            jellyfinLibrary.innerHTML = '<option value="">Loading libraries...</option>';
+            
+            try {
+                const response = await fetch('./include/jellyfin-import.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        'action': 'get_jellyfin_libraries'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success && data.data.length > 0) {
+                    jellyfinLibraries = data.data;
+                    jellyfinLibrary.innerHTML = '<option value="">Select library...</option>';
+                    
+                    let matchingLibrariesCount = 0;
+                    
+                    jellyfinLibraries.forEach(library => {
+                        // Filter libraries based on import type
+                        const showLibrary = (
+                            // For movies, only show movie libraries
+                            (importType === 'movies' && library.type === 'movie') ||
+                            // For shows or seasons, only show TV show libraries
+                            ((importType === 'shows' || importType === 'seasons') && library.type === 'show') ||
+                            // For collections, show both
+                            (importType === 'collections')
+                        );
+                        
+                        if (showLibrary) {
+                            matchingLibrariesCount++;
+                            const option = document.createElement('option');
+                            option.value = library.id;
+                            option.dataset.type = library.type;
+                            option.textContent = `${library.title} (${library.type === 'movie' ? 'Movies' : 'TV Shows'})`;
+                            jellyfinLibrary.appendChild(option);
+                        }
+                    });
+                    
+                    // If no libraries match the filter
+                    if (matchingLibrariesCount === 0) {
+                        jellyfinLibrary.innerHTML = '<option value="">No matching libraries found</option>';
+                        showErrorInJellyfinImportOptions('No libraries of the required type were found');
+                    }
+                } else {
+                    jellyfinLibrary.innerHTML = '<option value="">No libraries found</option>';
+                    showErrorInJellyfinImportOptions(data.error || 'No libraries found on Jellyfin server');
+                }
+            } catch (error) {
+                jellyfinLibrary.innerHTML = '<option value="">Error loading libraries</option>';
+                showErrorInJellyfinImportOptions('Error loading Jellyfin libraries: ' + error.message);
+            }
+        }
+        
+        // Load shows for a specific library (for TV season selection)
+        async function loadJellyfinShows(libraryId) {
+            jellyfinShow.innerHTML = '<option value="">Loading shows...</option>';
+            
+            try {
+                const response = await fetch('./include/jellyfin-import.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        'action': 'get_jellyfin_shows_for_seasons',
+                        'libraryId': libraryId
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success && data.data.length > 0) {
+                    jellyfinShows = data.data;
+                    jellyfinShow.innerHTML = '<option value="">Select show...</option>';
+                    
+                    jellyfinShows.forEach(show => {
+                        const option = document.createElement('option');
+                        option.value = show.id;
+                        option.textContent = show.title + (show.year ? ` (${show.year})` : '');
+                        jellyfinShow.appendChild(option);
+                    });
+                } else {
+                    jellyfinShow.innerHTML = '<option value="">No shows found</option>';
+                    showErrorInJellyfinImportOptions(data.error || 'No shows found in the selected library');
+                }
+            } catch (error) {
+                jellyfinShow.innerHTML = '<option value="">Error loading shows</option>';
+                showErrorInJellyfinImportOptions('Error loading shows: ' + error.message);
+            }
+        }
+        
+        // Display error in import options container
+        function showErrorInJellyfinImportOptions(message) {
+            // Only show errors if we have an actual message and if the user has started making selections
+            if (message && jellyfinImportType.value) {
+                jellyfinImportErrorContainer.textContent = message;
+                jellyfinImportErrorContainer.style.display = 'block';
+            }
+        }
+
+        function hideErrorInJellyfinImportOptions() {
+            jellyfinImportErrorContainer.style.display = 'none';
+            jellyfinImportErrorContainer.textContent = '';
+        }
+        
+        // Validate import options and enable/disable start button
+        function validateJellyfinImportOptions() {
+            const importType = jellyfinImportType.value;
+            const libraryId = jellyfinLibrary.value;
+            const showId = jellyfinShow.value;
+            const importAllSeasons = document.getElementById('jellyfinImportAllSeasons')?.checked || false;
+            
+            let isValid = false;
+            
+            if (!importType || !libraryId) {
+                isValid = false;
+            } else if (importType === 'seasons') {
+                // If importing all seasons, we just need a valid library
+                // If importing specific show seasons, we need both library and show
+                isValid = importAllSeasons ? true : (showId ? true : false);
+            } else {
+                // For all other types, just need a valid library ID
+                isValid = true;
+            }
+            
+            startJellyfinImportButton.disabled = !isValid;
+            return isValid;
+        }
+        
+        // Checkbox handler for "Import all seasons"
+        const jellyfinImportAllSeasonsCheckbox = document.getElementById('jellyfinImportAllSeasons');
+        if (jellyfinImportAllSeasonsCheckbox) {
+            jellyfinImportAllSeasonsCheckbox.addEventListener('change', function() {
+                const showSelectionStep = document.getElementById('jellyfinShowSelectionStep');
+                
+                if (this.checked) {
+                    // Hide show selection when "Import all seasons" is checked
+                    showSelectionStep.style.display = 'none';
+                } else {
+                    // Show the show selection step if we have a library selected
+                    const libraryId = jellyfinLibrary.value;
+                    if (libraryId) {
+                        const selectedOption = jellyfinLibrary.options[jellyfinLibrary.selectedIndex];
+                        const libraryType = selectedOption ? selectedOption.dataset.type : '';
+                        
+                        if (libraryType === 'show') {
+                            showSelectionStep.style.display = 'block';
+                            // Load shows for the library if they're not already loaded
+                            if (jellyfinShow.options.length <= 1) {
+                                loadJellyfinShows(libraryId);
+                            }
+                        }
+                    }
+                }
+                
+                validateJellyfinImportOptions();
+            });
+        }
+        
+        // Handle import type selection
+        jellyfinImportType.addEventListener('change', function() {
+            const selectedType = this.value;
+            
+            // Reset other steps
+            jellyfinLibrarySelectionStep.style.display = 'none';
+            jellyfinSeasonsOptionsStep.style.display = 'none';
+            jellyfinShowSelectionStep.style.display = 'none';
+            jellyfinTargetDirectoryStep.style.display = 'none';
+            jellyfinFileHandlingStep.style.display = 'none';
+            
+            // Reset selects with appropriate default messages
+            jellyfinLibrary.innerHTML = '<option value="">Loading libraries...</option>';
+            jellyfinShow.innerHTML = '<option value="">Select a library first...</option>';
+            
+            // Hide any previous error messages
+            hideErrorInJellyfinImportOptions();
+            
+            if (selectedType) {
+                // Show library selection step
+                jellyfinLibrarySelectionStep.style.display = 'block';
+                
+                // Now it's appropriate to load libraries since user has selected a type
+                loadJellyfinLibraries();
+                
+                // Pre-select target directory based on import type
+                switch (selectedType) {
+                    case 'movies':
+                        jellyfinTargetDirectory.value = 'movies';
+                        break;
+                    case 'shows':
+                        jellyfinTargetDirectory.value = 'tv-shows';
+                        break;
+                    case 'seasons':
+                        jellyfinTargetDirectory.value = 'tv-seasons';
+                        // Show seasons options step
+                        jellyfinSeasonsOptionsStep.style.display = 'block';
+                        break;
+                    case 'collections':
+                        jellyfinTargetDirectory.value = 'collections';
+                        break;
+                }
+                
+                // Show file handling step
+                jellyfinFileHandlingStep.style.display = 'block';
+            } else {
+                // If user clears the selection, reset the form
+                jellyfinLibrary.innerHTML = '<option value="">Select a content type first...</option>';
+                hideErrorInJellyfinImportOptions();
+                jellyfinFileHandlingStep.style.display = 'none';
+            }
+            
+            validateJellyfinImportOptions();
+        });
+        
+        // Handle library selection
+        jellyfinLibrary.addEventListener('change', function() {
+            const selectedLibraryId = this.value;
+            const selectedOption = this.options[this.selectedIndex];
+            const libraryType = selectedOption ? selectedOption.dataset.type : '';
+            
+            // Reset show selection
+            jellyfinShowSelectionStep.style.display = 'none';
+            jellyfinShow.innerHTML = '<option value="">Loading shows...</option>';
+            
+            // Hide error messages
+            hideErrorInJellyfinImportOptions();
+            
+            if (selectedLibraryId) {
+                // If importing seasons, show the show selection step
+                if (jellyfinImportType.value === 'seasons') {
+                    // Check if "Import all seasons" is checked
+                    const importAllSeasons = document.getElementById('jellyfinImportAllSeasons').checked;
+                    
+                    // Only show the show selection step if not importing all seasons
+                    if (!importAllSeasons) {
+                        if (libraryType === 'show') {
+                            jellyfinShowSelectionStep.style.display = 'block';
+                            loadJellyfinShows(selectedLibraryId);
+                        } else {
+                            showErrorInJellyfinImportOptions('Please select a TV Show library to import seasons');
+                        }
+                    }
+                }
+                
+                // Show target directory step
+                jellyfinTargetDirectoryStep.style.display = 'none';
+            }
+            
+            validateJellyfinImportOptions();
+        });
+        
+        // Handle show selection
+        jellyfinShow.addEventListener('change', function() {
+            validateJellyfinImportOptions();
+        });
+        
+        // Start the Jellyfin import process
+        startJellyfinImportButton.addEventListener('click', async function() {
+            if (!validateJellyfinImportOptions()) {
+                return;
+            }
+            
+            // Get selected options
+            const importType = jellyfinImportType.value;
+            const libraryId = jellyfinLibrary.value;
+            const importAllSeasons = document.getElementById('jellyfinImportAllSeasons')?.checked || false;
+            
+            // Only get showKey if we're not importing all seasons
+            const showKey = (importType === 'seasons' && !importAllSeasons) ? jellyfinShow.value : null;
+            
+            const targetDirectory = jellyfinTargetDirectory.value;
+            const overwriteOption = jellyfinFileHandling.value;
+            
+            // Hide the close button when starting the import process
+            const closeButton = jellyfinImportModal.querySelector('.modal-close-btn');
+            if (closeButton) {
+                closeButton.style.display = 'none';
+            }
+            
+            // Show progress container, hide options
+            jellyfinImportOptionsContainer.style.display = 'none';
+            jellyfinImportProgressContainer.style.display = 'block';
+            
+            // Start import process
+            try {
+                await importJellyfinPosters(importType, libraryId, showKey, targetDirectory, overwriteOption, importAllSeasons);
+            } catch (error) {
+                // Show the close button again on error
+                if (closeButton) {
+                    closeButton.style.display = 'block';
+                }
+                
+                // Hide the progress container
+                jellyfinImportProgressContainer.style.display = 'none';
+                jellyfinImportOptionsContainer.style.display = 'block';
+                
+                // Show error
+                showErrorInJellyfinImportOptions('Import failed: ' + error.message);
+            }
+        });
+        
+
+	// Import posters from Jellyfin
+	async function importJellyfinPosters(type, libraryId, showKey, contentType, overwriteOption, importAllSeasons) {
+		// Configure initial request
+		const initialParams = {
+		    'action': 'import_jellyfin_posters',
+		    'type': type,
+		    'libraryId': libraryId,
+		    'contentType': contentType,
+		    'overwriteOption': overwriteOption,
+		    'batchProcessing': 'true',
+		    'startIndex': 0
+		};
+		
+		// Add showKey for seasons import (when not importing all)
+		if (type === 'seasons' && !importAllSeasons) {
+		    if (!showKey) {
+		        throw new Error('Show ID is required for single-show seasons import');
+		    }
+		    initialParams.showKey = showKey;
+		}
+		
+		// Add importAllSeasons parameter if true
+		if (type === 'seasons' && importAllSeasons) {
+		    initialParams.importAllSeasons = 'true';
+		}
+		
+		let isComplete = false;
+		let currentIndex = 0;
+		const results = {
+		    successful: 0,
+		    skipped: 0,
+		    failed: 0,
+		    errors: []
+		};
+		
+		// Stats dashboard in the modal
+		const statsDashboard = `
+		<div id="jellyfinImportStatsDashboard" style="margin-top: 20px; display: flex; justify-content: space-between; text-align: center; gap: 10px;">
+		    <div style="flex: 1; background: rgba(46, 213, 115, 0.1); border: 1px solid var(--success-color); border-radius: 6px; padding: 12px;">
+		        <div style="font-size: 24px; font-weight: bold; color: var(--success-color);" id="jellyfinStatsSuccessful">0</div>
+		        <div style="color: var(--text-primary);">Successful</div>
+		    </div>
+		    <div style="flex: 1; background: rgba(255, 159, 67, 0.1); border: 1px solid var(--accent-primary); border-radius: 6px; padding: 12px;">
+		        <div style="font-size: 24px; font-weight: bold; color: var(--accent-primary);" id="jellyfinStatsSkipped">0</div>
+		        <div style="color: var(--text-primary);">Skipped</div>
+		    </div>
+		    <div style="flex: 1; background: rgba(239, 68, 68, 0.1); border: 1px solid var(--danger-color); border-radius: 6px; padding: 12px;">
+		        <div style="font-size: 24px; font-weight: bold; color: var(--danger-color);" id="jellyfinStatsFailed">0</div>
+		        <div style="color: var(--text-primary);">Failed</div>
+		    </div>
+		</div>
+		`;
+		
+		// Add stats dashboard to progress container
+		if (!document.getElementById('jellyfinImportStatsDashboard')) {
+		    document.getElementById('jellyfinImportProgressDetails').insertAdjacentHTML('afterend', statsDashboard);
+		}
+		
+		// Update progress message for all seasons import
+		if (type === 'seasons' && importAllSeasons) {
+		    document.getElementById('jellyfinImportProgressStatus').textContent = 'Importing season posters from all shows...';
+		}
+		
+		const allSkippedDetails = []; // Array to store results
+
+		// While not complete and not cancelled
+		while (!isComplete && !importCancelled) {
+		    try {
+		        const formData = new FormData();
+		        
+		        // Add all parameters
+		        for (const [key, value] of Object.entries({
+		            ...initialParams,
+		            'startIndex': currentIndex,
+		            'totalSuccessful': results.successful,
+		            'totalSkipped': results.skipped,
+		            'totalFailed': results.failed
+		        })) {
+		            formData.append(key, value);
+		        }
+		        
+		        const response = await fetch('./include/jellyfin-import.php', {
+		            method: 'POST',
+		            body: formData
+		        });
+		        
+		        const responseText = await response.text();
+		        
+		        let data;
+		        try {
+		            data = JSON.parse(responseText);
+		        } catch (parseError) {
+		            throw new Error(`Failed to parse JSON response: ${responseText.substring(0, 100)}...`);
+		        }
+		        
+		        if (!data.success) {
+		            throw new Error(data.error || 'Unknown error during import');
+		        }
+		        
+	        	if (data.results && data.results.skippedDetails) {
+					allSkippedDetails.push(...data.results.skippedDetails); // Spread to merge arrays
+				}
+		        
+		        // Update progress
+		        if (data.batchComplete) {
+		            
+		            // For "Import all seasons", show which show is being processed
+		            if (type === 'seasons' && importAllSeasons && data.progress.currentShow) {
+		                document.getElementById('jellyfinImportProgressStatus').textContent = 
+		                    `Importing seasons from: ${data.progress.currentShow}`;
+		                
+		                // Season progress details
+		                if (data.progress.seasonCount !== undefined) {
+		                    document.getElementById('jellyfinImportProgressDetails').innerHTML = 
+		                        `Processing show ${data.progress.processed} of ${data.progress.total} (${data.progress.percentage}%)<br>` +
+		                        `Found ${data.progress.seasonCount} seasons in current show`;
+		                } else {
+		                    document.getElementById('jellyfinImportProgressDetails').textContent = 
+		                        `Processing show ${data.progress.processed} of ${data.progress.total} (${data.progress.percentage}%)`;
+		                }
+		            } else {
+		                // Regular batch progress
+		                const percentage = data.progress.percentage;
+		                if (jellyfinImportProgressBar) {
+		                    jellyfinImportProgressBar.style.width = `${percentage}%`;
+		                } else {
+		                    const progressBarElement = document.querySelector('#jellyfinImportProgressBar > div');
+		                    if (progressBarElement) {
+		                        progressBarElement.style.width = `${percentage}%`;
+		                    }
+		                }
+		                
+		                // Update progress text
+		                document.getElementById('jellyfinImportProgressDetails').textContent = 
+		                    `Processing ${data.progress.processed} of ${data.progress.total} items (${percentage}%)`;
+		            }
+		            
+		            // Update progress bar for all cases
+		            const percentage = data.progress.percentage;
+		            if (jellyfinImportProgressBar) {
+		                jellyfinImportProgressBar.style.width = `${percentage}%`;
+		            }
+		            
+		            // Track results
+		            if (data.results) {
+		                results.successful += data.results.successful;
+		                results.skipped += data.results.skipped;
+		                results.failed += data.results.failed;
+		                
+		                // Concat any errors
+		                if (data.results.errors && data.results.errors.length) {
+		                    results.errors = [...results.errors, ...data.results.errors];
+		                }
+		            }
+		            
+		            // Update stats dashboard with the latest totals
+		            updateJellyfinStatsDashboard(results, allSkippedDetails);
+		            
+		            // Check if complete
+		            isComplete = data.progress.isComplete;
+		            currentIndex = data.progress.nextIndex || 0;
+		            
+		            
+		            // Force a small delay between requests to prevent overwhelming the server
+		            if (!isComplete) {
+		                await new Promise(resolve => setTimeout(resolve, 100));
+		            }
+		        } else {
+		            // Handle non-batch processing result
+		            isComplete = true;
+		            
+		            if (data.results) {
+		                results.successful = data.results.successful;
+		                results.skipped = data.results.skipped;
+		                results.failed = data.results.failed;
+		                results.errors = data.results.errors || [];
+		            }
+		            
+		            // Update stats dashboard
+		            updateJellyfinStatsDashboard(data.totalStats, allSkippedDetails || results,  allSkippedDetails);
+		        }
+		        
+		        // If complete, show results
+		        if (isComplete) {
+		            // Update status text for results
+		            document.getElementById('jellyfinImportProgressStatus').textContent = 'Import complete!';
+		            
+		            // Small delay before showing the results screen
+		            setTimeout(() => {
+		                showJellyfinImportResults(results, allSkippedDetails);
+		            }, 500);
+		        }
+		    } catch (error) {
+		        throw error;
+		    }
+		}
+		
+		return results;
+	}
+        
+        // Update the stats dashboard with the current totals
+		function updateJellyfinStatsDashboard(stats) {
+			
+			// Make sure the elements exist before trying to update them
+			const successfulElement = document.getElementById('jellyfinStatsSuccessful');
+			const skippedElement = document.getElementById('jellyfinStatsSkipped');
+			const failedElement = document.getElementById('jellyfinStatsFailed');
+			
+			if (successfulElement) {
+				successfulElement.textContent = stats.successful || 0;
+			}
+			
+			if (skippedElement) {
+				skippedElement.textContent = stats.skipped || 0;
+			}
+			
+			if (failedElement) {
+				failedElement.textContent = stats.failed || 0;
+			}
+			
+		}
+        
+// Global variable to store all batch results
+let allJellyfinImportResults = {
+    successful: 0,
+    skipped: 0,
+    failed: 0,
+    errors: [],
+    items: []
+};
+
+// Show import results
+function showJellyfinImportResults(results, skipped) {
+    // Accumulate results from all batches
+    if (results) {
+        // Update counts
+        allJellyfinImportResults.successful += results.successful || 0;
+        allJellyfinImportResults.skipped += results.skipped || 0;
+        allJellyfinImportResults.failed += results.failed || 0;
+
+        // Accumulate errors
+        if (results.errors && results.errors.length > 0) {
+            allJellyfinImportResults.errors = allJellyfinImportResults.errors.concat(results.errors);
+        }
+    }
+
+    // Accumulate items from this batch
+    if (skipped && skipped.length > 0) {
+        allJellyfinImportResults.items = allJellyfinImportResults.items.concat(skipped);
+    }
+
+    // Hide progress container
+    jellyfinImportProgressContainer.style.display = 'none';
+    
+    // Prepare details HTML if accumulated results exist
+    let skippedDetailsHtml = '';
+    if (allJellyfinImportResults.items.length > 0) {
+        const skippedDetailsContent = allJellyfinImportResults.items.map(function(item, index) {
+            // Truncate long filenames, keeping the collection name more visible
+            const truncateFilename = (filename) => {
+                const match = filename.match(/(.+) \[([a-f0-9]+)\]/);
+                if (match) {
+                    const [, collectionName, hash] = match;
+                    return `${collectionName} [${hash.substring(0, 10)}...]`;
+                }
+                return filename.length > 50 
+                    ? filename.substring(0, 47) + '...' 
+                    : filename;
+            };
+
+            return `
+                <div style="
+                    margin-bottom: 12px; 
+                    padding: 12px; 
+                    background-color: ${index % 2 === 0 ? 'var(--background-secondary)' : 'var(--background-tertiary)'};
+                    border-radius: 6px;
+                    display: grid;
+                    gap: 10px;
+                    align-items: start;
+                    border: 1px solid var(--border-color);
+                ">
+                    <div>
+                        <div style="
+                            font-weight: bold;
+                            color: var(--text-primary);
+                            margin-bottom: 4px;
+                        ">File</div>
+                        <div style="
+                            color: var(--text-secondary);
+                            word-break: break-all;
+                            font-size: 0.9em;
+                        " title="${item.file}">
+                            ${truncateFilename(item.file)}
+                        </div>
+                        
+                        <div style="
+                            font-weight: bold;
+                            color: var(--text-primary);
+                            margin-top: 8px;
+                            margin-bottom: 4px;
+                        ">Reason</div>
+                        <div style="
+                            color: var(--text-secondary);
+                            font-size: 0.9em;
+                        ">
+                            ${item.reason}
+                        </div>
+                        
+                        <div style="
+                            font-weight: bold;
+                            color: var(--text-primary);
+                            margin-top: 8px;
+                            margin-bottom: 4px;
+                        ">Message</div>
+                        <div style="
+                            color: var(--text-secondary);
+                            font-size: 0.9em;
+                        ">
+                            ${item.message}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        skippedDetailsHtml = `
+        <div style="margin-top: 15px; border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden;">
+            <div 
+                style="
+                    background-color: var(--background-secondary); 
+                    padding: 12px 15px; 
+                    cursor: pointer; 
+                    display: flex; 
+                    justify-content: space-between; 
+                    align-items: center;
+                    border-bottom: 1px solid var(--border-color);
+                " 
+                onclick="
+                    var detailsSection = this.nextElementSibling;
+                    detailsSection.style.display = detailsSection.style.display === 'none' ? 'block' : 'none';
+                    this.querySelector('.toggle-icon').textContent = 
+                        detailsSection.style.display === 'none' ? '▼' : '▲';
+                "
+            >
+                <strong style="color: var(--text-primary);">Skipped Details</strong> 
+                <span style="color: var(--text-secondary);">
+                    <span class="toggle-icon">▼</span> 
+                    ${allJellyfinImportResults.items.length} items
+                </span>
+            </div>
+            <div style="
+                display: none; 
+                max-height: 300px; 
+                text-align: left;
+                overflow-y: auto; 
+                padding: 15px; 
+                background-color: var(--background-primary);
+            ">
+                ${skippedDetailsContent}
+            </div>
+        </div>`;
+    }
+    
+    // Enhance results summary with stats
+    const resultsSummary = `
+    <div style="margin-bottom: 20px; text-align: center;">
+        <div style="display: flex; justify-content: space-between; gap: 15px; margin-bottom: 20px;">
+            <div style="flex: 1; background: rgba(46, 213, 115, 0.1); border: 1px solid var(--success-color); border-radius: 6px; padding: 15px;">
+                <div style="font-size: 28px; font-weight: bold; color: var(--success-color);">${allJellyfinImportResults.successful}</div>
+                <div style="color: var(--text-primary);">Successful</div>
+            </div>
+            <div style="flex: 1; background: rgba(255, 159, 67, 0.1); border: 1px solid var(--accent-primary); border-radius: 6px; padding: 15px;">
+                <div style="font-size: 28px; font-weight: bold; color: var(--accent-primary);">${allJellyfinImportResults.skipped}</div>
+                <div style="color: var(--text-primary);">Skipped</div>
+            </div>
+            <div style="flex: 1; background: rgba(239, 68, 68, 0.1); border: 1px solid var(--danger-color); border-radius: 6px; padding: 15px;">
+                <div style="font-size: 28px; font-weight: bold; color: var(--danger-color);">${allJellyfinImportResults.failed}</div>
+                <div style="color: var(--text-primary);">Failed</div>
+            </div>
+        </div>
+        <div style="color: var(--text-secondary);">
+            Total processed: ${allJellyfinImportResults.successful + allJellyfinImportResults.skipped + allJellyfinImportResults.failed}
+        </div>
+        ${skippedDetailsHtml}
+    </div>
+    `;
+    
+    // Add the results summary to the results container
+    const jellyfinImportResultsContainer = document.getElementById('jellyfinImportResultsContainer');
+    const existingContent = jellyfinImportResultsContainer.innerHTML;
+    jellyfinImportResultsContainer.innerHTML = existingContent.replace(
+        '<h3 style="margin-bottom: 16px; margin-top: 20px; display: flex; justify-content: center; align-items: center;">',
+        resultsSummary + '<h3 style="margin-bottom: 16px; margin-top: 20px; display: flex; justify-content: center; align-items: center;">'
+    );
+    
+    // Show results container
+    jellyfinImportResultsContainer.style.display = 'block';
+    
+    // Show errors if any
+    const jellyfinImportErrors = document.getElementById('jellyfinImportErrors');
+    if (allJellyfinImportResults.errors.length > 0) {
+        const errorList = jellyfinImportErrors.querySelector('ul');
+        errorList.innerHTML = '';
+        
+        allJellyfinImportResults.errors.forEach(function(error) {
+            const li = document.createElement('li');
+            li.textContent = error;
+            errorList.appendChild(li);
+        });
+        
+        jellyfinImportErrors.style.display = 'block';
+    } else {
+        jellyfinImportErrors.style.display = 'none';
+    }
+    
+    // ENSURE the close button is visible
+    const closeButton = jellyfinImportModal.querySelector('.modal-close-btn');
+    if (closeButton) {
+        closeButton.style.display = 'block';
+    }
+    
+    // Also ensure the close results button is properly set up
+    const closeResultsButton = document.getElementById('closeJellyfinImportResults');
+    if (closeResultsButton) {
+        closeResultsButton.style.display = 'block';
+        // Remove any existing event listeners to prevent multiple attachments
+        closeResultsButton.removeEventListener('click', closeImportResultsHandler);
+        closeResultsButton.addEventListener('click', closeImportResultsHandler);
+    }
+}
+
+// Separate event handler function to avoid multiple listener attachments
+function closeImportResultsHandler() {
+    // Reset the global results object when closing
+    allJellyfinImportResults = {
+        successful: 0,
+        skipped: 0,
+        failed: 0,
+        errors: [],
+        items: []
+    };
+    
+    jellyfinImportModal.classList.remove('show');
+    setTimeout(function() {
+        jellyfinImportModal.style.display = 'none';
+        // Force a page refresh to ensure a clean state
+        window.location.reload();
+    }, 300);
+}
+        
+        // Event handlers
+        showJellyfinImportButton.addEventListener('click', showJellyfinModal);
+        closeJellyfinImportButton?.addEventListener('click', hideJellyfinModal);
+        
+        // Don't close when clicking outside the modal during import
+        jellyfinImportModal.addEventListener('click', function(e) {
+            if (e.target === jellyfinImportModal) {
+                // Check if import is in progress
+                if (jellyfinImportProgressContainer.style.display === 'block') {
+                    // Don't close if import is in progress
+                    return;
+                }
+                hideJellyfinModal();
+            }
+        });
+        
+        // Close error modal event handlers
+        closeJellyfinErrorButton?.addEventListener('click', hideJellyfinErrorModal);
+        
+        jellyfinErrorCloseButtons.forEach(button => {
+            button.addEventListener('click', hideJellyfinErrorModal);
+        });
+        
+        // Close results and prepare for a new import
+        closeJellyfinResultsButton?.addEventListener('click', function() {
+            // Make sure to hide the modal and reset
+            hideModal(jellyfinImportModal);
+            // Force a page refresh to ensure a clean state
+            setTimeout(function() {
+                window.location.reload();
+            }, 300);
+        });
     }
     
     // =========== PLEX IMPORT MODAL ===========
@@ -3169,6 +4396,8 @@ document.addEventListener('DOMContentLoaded', function() {
 				document.getElementById('importProgressStatus').textContent = 'Importing season posters from all shows...';
 			}
 			
+		    const allSkippedDetails = []; // Array to store results
+		    
 			// While not complete and not cancelled
 			while (!isComplete && !importCancelled) {
 				try {
@@ -3242,8 +4471,13 @@ document.addEventListener('DOMContentLoaded', function() {
 				            }
 				        }
 				        
+				    if (data.results && data.results.skippedDetails) {
+						allSkippedDetails.push(...data.results.skippedDetails); // Spread to merge arrays
+					}
+		            
+				        
 				        // Update stats dashboard with the latest totals
-				        updateStatsDashboard(results);
+				        updateStatsDashboard(results, allSkippedDetails);
 				        
 				        // Check if complete
 				        isComplete = data.progress.isComplete;
@@ -3260,7 +4494,7 @@ document.addEventListener('DOMContentLoaded', function() {
 				        }
 				        
 				        // Update stats dashboard
-				        updateStatsDashboard(data.totalStats || results);
+				        updateStatsDashboard(data.totalStats, allSkippedDetails || results, allSkippedDetails);
 				    }
 				    
 				    // If complete, show results
@@ -3270,7 +4504,7 @@ document.addEventListener('DOMContentLoaded', function() {
 				        
 				        // Small delay before showing the results screen
 				        setTimeout(() => {
-				            showImportResults(results);
+				            showImportResults(results, allSkippedDetails);
 				        }, 500);
 				    }
 				} catch (error) {
@@ -3289,66 +4523,205 @@ document.addEventListener('DOMContentLoaded', function() {
 			document.getElementById('statsFailed').textContent = stats.failed;
 		}
         
-        // Show import results
-		function showImportResults(results) {
-			// Hide progress container
-			importProgressContainer.style.display = 'none';
-			
-			// Enhance results summary with stats
-			const resultsSummary = `
-			<div style="margin-bottom: 20px; text-align: center;">
-				<div style="display: flex; justify-content: space-between; gap: 15px; margin-bottom: 20px;">
-				    <div style="flex: 1; background: rgba(46, 213, 115, 0.1); border: 1px solid var(--success-color); border-radius: 6px; padding: 15px;">
-				        <div style="font-size: 28px; font-weight: bold; color: var(--success-color);">${results.successful}</div>
-				        <div style="color: var(--text-primary);">Successful</div>
-				    </div>
-				    <div style="flex: 1; background: rgba(255, 159, 67, 0.1); border: 1px solid var(--accent-primary); border-radius: 6px; padding: 15px;">
-				        <div style="font-size: 28px; font-weight: bold; color: var(--accent-primary);">${results.skipped}</div>
-				        <div style="color: var(--text-primary);">Skipped</div>
-				    </div>
-				    <div style="flex: 1; background: rgba(239, 68, 68, 0.1); border: 1px solid var(--danger-color); border-radius: 6px; padding: 15px;">
-				        <div style="font-size: 28px; font-weight: bold; color: var(--danger-color);">${results.failed}</div>
-				        <div style="color: var(--text-primary);">Failed</div>
-				    </div>
-				</div>
-				<div style="color: var(--text-secondary);">
-				    Total processed: ${results.successful + results.skipped + results.failed}
-				</div>
-			</div>
-			`;
-			
-			// Add the results summary to the results container
-			const existingContent = document.getElementById('importResultsContainer').innerHTML;
-			document.getElementById('importResultsContainer').innerHTML = existingContent.replace(
-				'<h3 style="margin-bottom: 16px; margin-top: 20px; display: flex; justify-content: center; align-items: center;">',
-				resultsSummary + '<h3 style="margin-bottom: 16px; margin-top: 20px; display: flex; justify-content: center; align-items: center;">'
-			);
-			
-			// Show results container
-			importResultsContainer.style.display = 'block';
-			
-			// Show errors if any
-			if (results.errors && results.errors.length > 0) {
-				const errorList = importErrors.querySelector('ul');
-				errorList.innerHTML = '';
-				
-				results.errors.forEach(error => {
-				    const li = document.createElement('li');
-				    li.textContent = error;
-				    errorList.appendChild(li);
-				});
-				
-				importErrors.style.display = 'block';
-			} else {
-				importErrors.style.display = 'none';
-			}
-			
-			// Show the close button again when results are shown
-			const closeButton = plexImportModal.querySelector('.modal-close-btn');
-			if (closeButton) {
-				closeButton.style.display = 'block';
-			}
-		}
+// Global variable to store all results across batches
+let allImportResults = {
+    successful: 0,
+    skipped: 0,
+    failed: 0,
+    errors: [],
+    items: []
+};
+
+// Show import results
+function showImportResults(results, skipped) {
+    // Accumulate results from all batches
+    if (results) {
+        // Update counts
+        allImportResults.successful += results.successful || 0;
+        allImportResults.skipped += results.skipped || 0;
+        allImportResults.failed += results.failed || 0;
+
+        // Accumulate errors
+        if (results.errors && results.errors.length > 0) {
+            allImportResults.errors = allImportResults.errors.concat(results.errors);
+        }
+    }
+
+    // Accumulate items from this batch
+    if (skipped && skipped.length > 0) {
+        allImportResults.items = allImportResults.items.concat(skipped);
+    }
+
+    // Hide progress container
+    importProgressContainer.style.display = 'none';
+    
+    // Prepare details HTML if accumulated results exist
+    let skippedDetailsHtml = '';
+    if (allImportResults.items.length > 0) {
+        const skippedDetailsContent = allImportResults.items.map(function(item, index) {
+            // Truncate long filenames, keeping the collection name more visible
+            const truncateFilename = (filename) => {
+                const match = filename.match(/(.+) \[([a-f0-9]+)\]/);
+                if (match) {
+                    const [, collectionName, hash] = match;
+                    return `${collectionName} [${hash.substring(0, 10)}...]`;
+                }
+                return filename.length > 50 
+                    ? filename.substring(0, 47) + '...' 
+                    : filename;
+            };
+
+            return `
+                <div style="
+                    margin-bottom: 12px; 
+                    padding: 12px; 
+                    background-color: ${index % 2 === 0 ? 'var(--background-secondary)' : 'var(--background-tertiary)'};
+                    border-radius: 6px;
+                    display: grid;
+                    gap: 10px;
+                    align-items: start;
+                    border: 1px solid var(--border-color);
+                ">
+                    <div>
+                        <div style="
+                            font-weight: bold;
+                            color: var(--text-primary);
+                            margin-bottom: 4px;
+                        ">File</div>
+                        <div style="
+                            color: var(--text-secondary);
+                            word-break: break-all;
+                            font-size: 0.9em;
+                        " title="${item.file}">
+                            ${truncateFilename(item.file)}
+                        </div>
+                        
+                        <div style="
+                            font-weight: bold;
+                            color: var(--text-primary);
+                            margin-top: 8px;
+                            margin-bottom: 4px;
+                        ">Reason</div>
+                        <div style="
+                            color: var(--text-secondary);
+                            font-size: 0.9em;
+                        ">
+                            ${item.reason}
+                        </div>
+                        
+                        <div style="
+                            font-weight: bold;
+                            color: var(--text-primary);
+                            margin-top: 8px;
+                            margin-bottom: 4px;
+                        ">Message</div>
+                        <div style="
+                            color: var(--text-secondary);
+                            font-size: 0.9em;
+                        ">
+                            ${item.message}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        skippedDetailsHtml = `
+        <div style="margin-top: 15px; border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden;">
+            <div 
+                style="
+                    background-color: var(--background-secondary); 
+                    padding: 12px 15px; 
+                    cursor: pointer; 
+                    display: flex; 
+                    justify-content: space-between; 
+                    align-items: center;
+                    border-bottom: 1px solid var(--border-color);
+                " 
+                onclick="
+                    var detailsSection = this.nextElementSibling;
+                    detailsSection.style.display = detailsSection.style.display === 'none' ? 'block' : 'none';
+                    this.querySelector('.toggle-icon').textContent = 
+                        detailsSection.style.display === 'none' ? '▼' : '▲';
+                "
+            >
+                <strong style="color: var(--text-primary);">Skipped Details</strong> 
+                <span style="color: var(--text-secondary);">
+                    <span class="toggle-icon">▼</span> 
+                    ${allImportResults.items.length} items
+                </span>
+            </div>
+            <div style="
+                display: none; 
+                max-height: 300px; 
+                text-align: left;
+                overflow-y: auto; 
+                padding: 15px; 
+                background-color: var(--background-primary);
+            ">
+                ${skippedDetailsContent}
+            </div>
+        </div>`;
+    }
+    
+    // Enhance results summary with stats
+    const resultsSummary = `
+    <div style="margin-bottom: 20px; text-align: center;">
+        <div style="display: flex; justify-content: space-between; gap: 15px; margin-bottom: 20px;">
+            <div style="flex: 1; background: rgba(46, 213, 115, 0.1); border: 1px solid var(--success-color); border-radius: 6px; padding: 15px;">
+                <div style="font-size: 28px; font-weight: bold; color: var(--success-color);">${allImportResults.successful}</div>
+                <div style="color: var(--text-primary);">Successful</div>
+            </div>
+            <div style="flex: 1; background: rgba(255, 159, 67, 0.1); border: 1px solid var(--accent-primary); border-radius: 6px; padding: 15px;">
+                <div style="font-size: 28px; font-weight: bold; color: var(--accent-primary);">${allImportResults.skipped}</div>
+                <div style="color: var(--text-primary);">Skipped</div>
+            </div>
+            <div style="flex: 1; background: rgba(239, 68, 68, 0.1); border: 1px solid var(--danger-color); border-radius: 6px; padding: 15px;">
+                <div style="font-size: 28px; font-weight: bold; color: var(--danger-color);">${allImportResults.failed}</div>
+                <div style="color: var(--text-primary);">Failed</div>
+            </div>
+        </div>
+        <div style="color: var(--text-secondary);">
+            Total processed: ${allImportResults.successful + allImportResults.skipped + allImportResults.failed}
+        </div>
+        ${skippedDetailsHtml}
+    </div>
+    `;
+    
+    // Add the results summary to the results container
+    const importResultsContainer = document.getElementById('importResultsContainer');
+    const existingContent = importResultsContainer.innerHTML;
+    importResultsContainer.innerHTML = existingContent.replace(
+        '<h3 style="margin-bottom: 16px; margin-top: 20px; display: flex; justify-content: center; align-items: center;">',
+        resultsSummary + '<h3 style="margin-bottom: 16px; margin-top: 20px; display: flex; justify-content: center; align-items: center;">'
+    );
+    
+    // Show results container
+    importResultsContainer.style.display = 'block';
+    
+    // Show errors if any
+    const importErrors = document.getElementById('importErrors');
+    if (allImportResults.errors.length > 0) {
+        const errorList = importErrors.querySelector('ul');
+        errorList.innerHTML = '';
+        
+        allImportResults.errors.forEach(error => {
+            const li = document.createElement('li');
+            li.textContent = error;
+            errorList.appendChild(li);
+        });
+        
+        importErrors.style.display = 'block';
+    } else {
+        importErrors.style.display = 'none';
+    }
+    
+    // Show the close button again when results are shown
+    const closeButton = plexImportModal.querySelector('.modal-close-btn');
+    if (closeButton) {
+        closeButton.style.display = 'block';
+    }
+}
         
         // Event handlers
         showPlexImportButton.addEventListener('click', showPlexModal);
@@ -3429,7 +4802,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         alert(data.error || 'Failed to delete file');
                     }
                 } catch (error) {
-                    console.error('Delete error:', error);
                     alert('An error occurred while deleting the file');
                 }
             });
@@ -3521,7 +4893,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         showRenameError(data.error || 'Failed to rename file');
                     }
                 } catch (error) {
-                    console.error('Rename error:', error);
                     showRenameError('An error occurred while renaming the file');
                 }
             });
@@ -3573,7 +4944,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         alert(data.error || 'Failed to move file');
                     }
                 } catch (error) {
-                    console.error('Move error:', error);
                     alert('An error occurred while moving the file');
                 }
             });
@@ -3688,7 +5058,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 showNotification();
             });
         } catch (err) {
-            console.error('Failed to copy: ', err);
             
             // Fallback for browsers that don't support clipboard API
             const textarea = document.createElement('textarea');
@@ -3701,7 +5070,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.execCommand('copy');
                 showNotification();
             } catch (e) {
-                console.error('Fallback copy failed:', e);
                 alert('Copy failed. Please select and copy the URL manually.');
             }
             
@@ -4053,6 +5421,46 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
         });
     }
+    
+        // Fix for Plex Import modal
+    const plexImportButton = document.getElementById('showPlexImportModal');
+    if (plexImportButton) {
+        plexImportButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const plexModal = document.getElementById('plexImportModal');
+            if (plexModal) {
+                plexModal.style.display = 'block';
+                setTimeout(() => {
+                    plexModal.classList.add('show');
+                }, 10);
+            }
+        });
+    }
+    
+    // Fix for Jellyfin Import modal
+    const jellyfinImportButton = document.getElementById('showJellyfinImportModal');
+    if (jellyfinImportButton) {
+        jellyfinImportButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const jellyfinModal = document.getElementById('jellyfinImportModal');
+            if (jellyfinModal) {
+                jellyfinModal.style.display = 'block';
+                setTimeout(() => {
+                    jellyfinModal.classList.add('show');
+                }, 10);
+            }
+        });
+    }
+    
+    // Prevent dropdown from closing when clicking inside it
+    const dropdownContents = document.querySelectorAll('.dropdown-content');
+    dropdownContents.forEach(content => {
+        content.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+    });
    
 
     // Handle browser back/forward

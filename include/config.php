@@ -34,13 +34,20 @@ $auth_config = [
 	'session_duration' => getIntEnvWithFallback('SESSION_DURATION', 3600) // 1 hour default
 ];
 
-// Plex Configuration
 $plex_config = [
     'server_url' => getEnvWithFallback('PLEX_SERVER_URL', ''),
     'token' => getEnvWithFallback('PLEX_TOKEN', ''),
     'connect_timeout' => getIntEnvWithFallback('PLEX_CONNECT_TIMEOUT', 10),
     'request_timeout' => getIntEnvWithFallback('PLEX_REQUEST_TIMEOUT', 60),
     'import_batch_size' => getIntEnvWithFallback('PLEX_IMPORT_BATCH_SIZE', 25)
+];
+
+$jellyfin_config = [
+    'server_url' => getEnvWithFallback('JELLYFIN_SERVER_URL', ''),
+    'api_key' => getEnvWithFallback('JELLYFIN_API_KEY', ''),
+    'connect_timeout' => getIntEnvWithFallback('JELLYFIN_CONNECT_TIMEOUT', 10),
+    'request_timeout' => getIntEnvWithFallback('JELLYFIN_REQUEST_TIMEOUT', 60),
+    'import_batch_size' => getIntEnvWithFallback('JELLYFIN_IMPORT_BATCH_SIZE', 25)
 ];
 
 ?>

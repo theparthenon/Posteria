@@ -28,6 +28,34 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+// Make sure we catch all errors
+set_error_handler(function($errno, $errstr, $errfile, $errline) {
+    logDebug("PHP Error", [
+        'errno' => $errno,
+        'errstr' => $errstr,
+        'errfile' => $errfile,
+        'errline' => $errline
+    ]);
+    
+    // Return true to prevent the standard PHP error handler from running
+    return true;
+});
+
+// Make sure all exceptions are caught
+set_exception_handler(function($exception) {
+    logDebug("Uncaught Exception", [
+        'message' => $exception->getMessage(),
+        'file' => $exception->getFile(),
+        'line' => $exception->getLine(),
+        'trace' => $exception->getTraceAsString()
+    ]);
+    
+    // Send a JSON response with the error
+    header('Content-Type: application/json');
+    echo json_encode(['success' => false, 'error' => 'Unhandled exception: ' . $exception->getMessage()]);
+    exit;
+});
+
 // Prevent direct output of errors
 ini_set('display_errors', 0);
 error_reporting(E_ALL);

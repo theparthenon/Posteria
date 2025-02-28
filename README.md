@@ -36,8 +36,8 @@ services:
       - "8181:80"
     environment:
       - SITE_TITLE=Posteria
-      - AUTH_USERNAME=mhancoc7          # Change this!
-      - AUTH_PASSWORD=QPREmUT8rJ5zET    # Change this!
+      - AUTH_USERNAME=admin         	# Change this!
+  - AUTH_PASSWORD=chnagem    		# Change this!
       - SESSION_DURATION=3600           # In seconds
       - IMAGES_PER_PAGE=24
       - MAX_FILE_SIZE=5242880           # In bytes

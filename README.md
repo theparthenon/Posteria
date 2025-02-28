@@ -12,7 +12,7 @@ Here's the updated version with the PWA line added:
 - 📲 Installable as a PWA (Progressive Web App)
 - 🔒 Simple authentication system
 - ⚡ Easy poster upload from local files or URLs
-- 🎬 Import posters from Plex
+- 🎬 Import posters from Plex or Jellyfin
 - 🔄 Move posters between categories
 - 🎨 Support for JPG, JPEG, PNG, and WebP formats
 
@@ -30,19 +30,21 @@ Here's the updated version with the PWA line added:
 ```yaml
 services:
   posteria:
-    image: bozodev/posteria:latest
+    image: bozodev/posteria:dev
     container_name: posteria
     ports:
       - "8181:80"
     environment:
       - SITE_TITLE=Posteria
-      - AUTH_USERNAME=admin          # Change this!
-      - AUTH_PASSWORD=changeme       # Change this!
-      - SESSION_DURATION=3600        # In seconds
+      - AUTH_USERNAME=mhancoc7          # Change this!
+      - AUTH_PASSWORD=QPREmUT8rJ5zET    # Change this!
+      - SESSION_DURATION=3600           # In seconds
       - IMAGES_PER_PAGE=24
-      - MAX_FILE_SIZE=5242880        # In bytes
-      - PLEX_SERVER_URL=             # Optional for Importing from Plex
-      - PLEX_TOKEN=                  # Optional for Importing from Plex
+      - MAX_FILE_SIZE=5242880           # In bytes
+      - PLEX_SERVER_URL=   		# Optional for Importing from Plex
+  	  - PLEX_TOKEN=             	# Optional for Importing from Plex
+      - JELLYFIN_SERVER_URL=		# Optional for Importing from Jellyfin
+      - JELLYFIN_API_KEY=		# Optional for Importing from Jellyfin
     volumes:
       - ./posters/movies:/var/www/html/posters/movies
       - ./posters/tv-shows:/var/www/html/posters/tv-shows
@@ -70,6 +72,8 @@ docker-compose up -d
 | MAX_FILE_SIZE | Maximum upload file size in bytes | 5242880 (5MB) |
 | PLEX_SERVER_URL | URL for your Plex Server | ex: http://your-server:32400
 | PLEX_TOKEN | Plex Server Token | [More info](https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/) |
+| JELLYFIN_SERVER_URL | URL for your Jellyfin Server | ex: http://your-server:8096
+| JELLYFIN_API_KEY | Jellyfin Server API Key | Create API Key in Jellyfin Dashboard |
 ### Volume Mounts
 
 The Docker container uses the following volume mounts:
@@ -87,7 +91,8 @@ The Docker container uses the following volume mounts:
    - Support for local file upload
    - Support for direct URL upload
 4. Import posters from your Plex Media Server
-5. Manage your posters:
+5. Import posters from your Jellyfin Media Server
+6. Manage your posters:
    - Move between categories
    - Rename files
    - Delete unwanted posters

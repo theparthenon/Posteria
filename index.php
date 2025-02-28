@@ -725,14 +725,12 @@
 		header {
 			text-align: center;
 			margin-bottom: 40px;
-			padding-top: 20px;
 		}
 
 		.header-content {
 			display: flex;
 			justify-content: space-between;
 			align-items: center;
-			margin-bottom: 20px;
 		}
 
 		h1 {

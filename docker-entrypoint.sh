@@ -5,7 +5,7 @@ set -e
 for dir in movies tv-shows tv-seasons collections; do
     directory="/var/www/html/posters/$dir"
     mkdir -p "$directory"
-    chown -R www-data:www-data "$directory"
+    chown -R www-data:dialout "$directory"
     chmod -R 775 "$directory"
 done
 
